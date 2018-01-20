@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="60">
+    <Properties>
+        <Property name="log-path">logs</Property>
+        <Property name="archive">${log-path}/archive</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console-Appender" target="SYSTEM_OUT">
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>>
+            </PatternLayout>
+        </Console>
+
+        <File name="lostLatLng" fileName="${log-path}/lostLatLng.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="by.potato.MainApplication" fileName="${log-path}/Constuctor.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="dataBase" fileName="${log-path}/DataBaseHelper.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="health" fileName="${log-path}/HealthCheckerPool.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="dataBase" fileName="${log-path}/DataBaseHelper.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="updateDB" fileName="${log-path}/UpdateDB.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="geocoding" fileName="${log-path}/Geocoding.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="userCases" fileName="${log-path}/UserCases.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+
+        <File name="workOfweek" fileName="${log-path}/WorkOfWeek.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="test" fileName="${log-path}/test.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+
+
+
+    </Appenders>
+
+
+
+    <Loggers>
+        <Logger name="lostLatLng" level="debug">
+            <AppenderRef ref="lostLatLng" />
+        </Logger>
+
+        <Logger name="DataBaseHelper" level="info">
+            <AppenderRef ref="dataBase" />
+        </Logger>
+
+        <Logger name="HealthCheckerPool" level="info">
+            <AppenderRef ref="health" />
+        </Logger>
+
+        <Logger name="UpdateDB" level="info">
+            <AppenderRef ref="updateDB" />
+        </Logger>
+
+        <Logger name="Geocoding" level="info">
+            <AppenderRef ref="geocoding" />
+        </Logger>
+
+        <Logger name="UserCases" level="info">
+            <AppenderRef ref="userCases" />
+        </Logger>
+
+        <Logger name="WorkOfWeek" level="error">
+            <AppenderRef ref="workOfweek" />
+        </Logger>
+
+
+        <Logger name="test" level="info">
+            <AppenderRef ref="test" />
+        </Logger>
+
+
+        <Root level="debug">
+           <AppenderRef ref="Console-Appender"/>
+        </Root>
+    </Loggers>
+</Configuration>
