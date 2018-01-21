@@ -9,11 +9,11 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
-import static by.potato.helper.PropCheck.BotApiKey;
-import static by.potato.helper.PropCheck.BotName;
-
 import java.util.Queue;
 import java.util.concurrent.*;
+
+import static by.potato.helper.PropCheck.BotApiKey;
+import static by.potato.helper.PropCheck.BotName;
 
 public class BestCoursesBot extends TelegramLongPollingBot{
 

@@ -29,8 +29,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static by.potato.helper.PropCheck.ORA_DB_LOGIN;
-import static by.potato.helper.PropCheck.ORA_DB_PASS;
+import static by.potato.helper.PropCheck.*;
 
 public class DataBaseHelper {
 
@@ -41,8 +40,6 @@ public class DataBaseHelper {
 
     private Map<String, Integer> citiesID;
     private Set<String> cities;
-
-    private final String ORA_DB_URL = "jdbc:mysql://localhost/BestCourses?characterEncoding=UTF-8";
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -56,7 +53,7 @@ public class DataBaseHelper {
 
         this.pds = PoolDataSourceFactory.getPoolDataSource();
         this.sc = Executors.newScheduledThreadPool(1);
-        this.poolName = new String("MariaDB");
+        this.poolName = "MariaDB";
 
         try {
             this.mgr = UniversalConnectionPoolManagerImpl.getUniversalConnectionPoolManager();
@@ -128,7 +125,7 @@ public class DataBaseHelper {
 
         uniqueCity.removeAll(currentCity);
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql);) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
             for (String elem : uniqueCity) {
                 preparedStatement.setString(1, elem);
@@ -151,7 +148,7 @@ public class DataBaseHelper {
 
         String sql = "select d.address from Departments as d, Cities as c where c.id = d.id_cities and c.name = ?";
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql);) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
             preparedStatement.setString(1, city);
 
@@ -179,13 +176,13 @@ public class DataBaseHelper {
 
         String sql = "UPDATE Departments SET workTimes = ? WHERE link_work_time = ?";
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql);) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
 
             for(Map.Entry<String, List<Day>>  elem : elements.entrySet()) {
 
 
-                String jsonInString = this.mapper.writeValueAsString(elem.getValue());
+                String jsonInString = mapper.writeValueAsString(elem.getValue());
 
                 preparedStatement.setString(1, jsonInString);
                 preparedStatement.setString(2, elem.getKey());
@@ -226,13 +223,13 @@ public class DataBaseHelper {
 
         int idCity = this.citiesID.get(nameOfCity);
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql);) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
             for (Map.Entry<String, List<Department>> entry : listBank.entrySet()) {
 
                 for (Department department : entry.getValue()) {
 
-                    String jsonInString = this.mapper.writeValueAsString(department);
+                    String jsonInString = mapper.writeValueAsString(department);
 
                     Currency euro = new Currency();
                     Currency doll = new Currency();
@@ -364,17 +361,14 @@ public class DataBaseHelper {
         }
     }
 
-    //TODO isWork
-    public List<Department> geoDepartment(Optional<LatLng> place, int count) {
+    public List<Department> geoDepartment(Optional<LatLng> place, LocalDateTime localDateTime) {
 
-
-        LocalDateTime localDateTime = LocalDateTime.now();
         DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
         LocalTime localTime = localDateTime.toLocalTime();
 
         List<Department> result = new ArrayList<>();
 
-        try (Connection conn = this.pds.getConnection(); CallableStatement callableStatement = conn.prepareCall("{call geoDepartment(?,?)}");) {
+        try (Connection conn = this.pds.getConnection(); CallableStatement callableStatement = conn.prepareCall("{call geoDepartment(?,?)}")) {
 
             callableStatement.setDouble(1, place.get().lat);
             callableStatement.setDouble(2, place.get().lng);
@@ -382,6 +376,7 @@ public class DataBaseHelper {
             ResultSet resultSet = callableStatement.executeQuery();
 
             while (resultSet.next()) {
+
 
                 String bankName = resultSet.getString(1);
                 String address = resultSet.getString(2);
@@ -406,9 +401,15 @@ public class DataBaseHelper {
                 String cityName = resultSet.getString(13);
                 Double dist = resultSet.getDouble(14);
 
-                Map<DayOfWeek,Day> workTime = mapper.readValue(worksTimeStr,
-                        new TypeReference<Map<DayOfWeek,Day>>() {
-                        });
+
+                //TODO разобраться почему в БД есть нераспаршенное время
+                List<Day> workTime = new ArrayList<>();
+                if(worksTimeStr != null) {
+                    workTime = mapper.readValue(worksTimeStr,
+                            new TypeReference<List<Day>>() {
+                            });
+
+                }
 
                 Department department =
                         new Department.Builder()
@@ -422,15 +423,12 @@ public class DataBaseHelper {
                                 .setWorksTime(workTime)
                                 .build();
 
-
-                //TODO
-                if (department.isWork(dayOfWeek, localTime).isWork()) {
+                if (department.isWork(dayOfWeek,localTime)) {
                     result.add(department);
-
-                    if (result.size() == count) {
-                        break;
-                    }
                 }
+
+
+
 
             }
 
@@ -444,13 +442,14 @@ public class DataBaseHelper {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return result;
     }
 
     //dist in distantion precision is km
-    //TODO isWork
     public List<Department> geoDepartmentDist(Optional<LatLng> place, double distantion) {
 
         LocalDateTime localDateTime = LocalDateTime.now();
@@ -459,7 +458,7 @@ public class DataBaseHelper {
 
         List<Department> result = new ArrayList<>();
 
-        try (Connection conn = this.pds.getConnection(); CallableStatement callableStatement = conn.prepareCall("{call geoDepartmentDist(?,?,?)}");) {
+        try (Connection conn = this.pds.getConnection(); CallableStatement callableStatement = conn.prepareCall("{call geoDepartmentDist(?,?,?)}")) {
 
             callableStatement.setDouble(1, place.get().lat);
             callableStatement.setDouble(2, place.get().lng);
@@ -489,8 +488,8 @@ public class DataBaseHelper {
 
                 String worksTimeStr = resultSet.getString(12);
 
-                Map<DayOfWeek,Day> workTime = mapper.readValue(worksTimeStr,
-                        new TypeReference<Map<DayOfWeek,Day>>() {
+                List<Day> workTime = mapper.readValue(worksTimeStr,
+                        new TypeReference<List<Day>>() {
                         });
 
                 String cityName = resultSet.getString(13);
@@ -507,7 +506,7 @@ public class DataBaseHelper {
                         .setWorksTime(workTime)
                         .build();
 
-                if (department.isWork(dayOfWeek, localTime).isWork()) {//TODO
+                if (department.isWork(dayOfWeek, localTime)) {
                     result.add(department);
                 }
             }
@@ -546,7 +545,7 @@ public class DataBaseHelper {
                 "dep.doll_multiplier" +
                 " FROM Departments as dep, Cities as c  WHERE c.name = ? and c.id = dep.id_cities";
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql);) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
             preparedStatement.setString(1, city);
 
@@ -608,7 +607,7 @@ public class DataBaseHelper {
                 "WHERE c.name = ? and c.id = dep.id_cities " +
                 "ORDER BY bank_name ASC";
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql);) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
             preparedStatement.setString(1, city);
 
@@ -648,7 +647,7 @@ public class DataBaseHelper {
                 "dep.doll_multiplier" +
                 " FROM Departments as dep, Cities as c  WHERE c.name = ? and c.id = dep.id_cities and bank_name = ?";
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql);) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
             preparedStatement.setString(1, city);
             preparedStatement.setString(2, bankName);
@@ -703,7 +702,7 @@ public class DataBaseHelper {
     public void insertQuestion(Long charId, String message) {
         String sql = "INSERT INTO Questions (id, chart_id, message) VALUES (NULL,?,?)";
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql);) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
             preparedStatement.setLong(1, charId);
             preparedStatement.setString(2, message);
@@ -757,7 +756,7 @@ public class DataBaseHelper {
 
         String sql = "select link_work_time from Departments";
 
-        try (Connection conn = this.pds.getConnection(); Statement statement = conn.createStatement();) {
+        try (Connection conn = this.pds.getConnection(); Statement statement = conn.createStatement()) {
 
             ResultSet resultSet = statement.executeQuery(sql);
 

@@ -2,18 +2,10 @@ package by.potato;
 
 import by.potato.helper.PropCheck;
 import by.potato.helper.UpdateCourses;
-import by.potato.helper.UserCases;
 
-import by.potato.helper.WorkOfWeek;
-import by.potato.holder.Day;
-import by.potato.holder.Department;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainApplication {

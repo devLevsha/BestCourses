@@ -2,10 +2,11 @@ package by.potato.helper;
 
 import by.potato.Enum.TypeOfCurrency;
 import by.potato.db.DataBaseHelper;
-import by.potato.holder.*;
+import by.potato.holder.City;
 import by.potato.holder.Currency;
+import by.potato.holder.Day;
+import by.potato.holder.Department;
 import com.google.maps.model.LatLng;
-import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -14,9 +15,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -126,27 +129,24 @@ public class UpdateCourses implements Runnable {
 
                 TypeOfCurrency type = TypeOfCurrency.valueOf(typeCurr.toUpperCase());
 
-                if (type != null) {
+                Currency cur;
 
-                    Currency cur = null;
-
-                    if (infoCurrency.containsKey(type)) {
-                        cur = infoCurrency.get(type);
-                    } else {
-                        cur = new Currency(type, Integer.valueOf(multiplier));
-                    }
-
-                    if (typeOper.endsWith("buy")) {
-                        cur.setValueBuy(Double.valueOf(value));
-                    }
-
-                    if (typeOper.endsWith("sell")) {
-                        cur.setValueSell(Double.valueOf(value));
-                    }
-
-                    infoCurrency.put(type, cur);
-
+                if (infoCurrency.containsKey(type)) {
+                    cur = infoCurrency.get(type);
+                } else {
+                    cur = new Currency(type, Integer.valueOf(multiplier));
                 }
+
+                if (typeOper.endsWith("buy")) {
+                    cur.setValueBuy(Double.valueOf(value));
+                }
+
+                if (typeOper.endsWith("sell")) {
+                    cur.setValueSell(Double.valueOf(value));
+                }
+
+                infoCurrency.put(type, cur);
+
             } catch (Exception e) {
                 System.out.println(nameOfCity);
                 e.printStackTrace();
@@ -168,7 +168,7 @@ public class UpdateCourses implements Runnable {
         dep.setLinkToTimes(linkForMoreInformation);
 
         if (!currentAddress.contains(dep.getAddress())) {
-            dep.setLatlng(Geocoding.getCoordFromAddress(dep.getAddress()).get()                                                                                                                                                                                                                                                               );
+            dep.setLatlng(Geocoding.getCoordFromAddress(dep.getAddress()).get());
         } else {
             dep.setLatlng(new LatLng());
         }
@@ -183,22 +183,21 @@ public class UpdateCourses implements Runnable {
 
         List<String> linkToWorkTime = DataBaseHelper.getInstance().getLinkWorkTime();
 
-        int i = 0;
-        System.err.println(linkToWorkTime.size());
         for(String link: linkToWorkTime) {
 
             //получить список строк с временем работы
             List<String> workTimes = getWorkingTime(link);
 
+
             List<Day> worksTime = new ArrayList<>();
+
 
             for(String elem: workTimes) {
                 WorkOfWeek.parse(elem,worksTime);
             }
 
-            result.put(link,worksTime);
 
-            System.err.println(++i);
+            result.put(link,worksTime);
         }
 
         DataBaseHelper.getInstance().updateWorkTime(result);
@@ -215,25 +214,25 @@ public class UpdateCourses implements Runnable {
 
         ExecutorService es = Executors.newFixedThreadPool(10);
 
-        for(String link: linkToWorkTime) {
-                 es.submit(() -> {
+        for (String link : linkToWorkTime) {
+            es.submit(() -> {
 
-                     //получить список строк с временем работы
-                     List<String> workTimes = getWorkingTime(link);
+                //получить список строк с временем работы
+                List<String> workTimes = getWorkingTime(link);
 
 
-                     List<Day> worksTime = new ArrayList<>();
+                List<Day> worksTime = new ArrayList<>();
 
-                     for(String elem: workTimes) {
-                         WorkOfWeek.parse(elem,worksTime);
-                     }
+                for (String elem : workTimes) {
+                    WorkOfWeek.parse(elem, worksTime);
+                }
 
-                     result.put(link,worksTime);
+                result.put(link, worksTime);
             });
         }
 
-        int before = 0;
-        int after = 0;
+        int before;
+        int after;
         while (linkToWorkTime.size() != result.size() )
         try {
             before = result.size();
@@ -260,8 +259,9 @@ public class UpdateCourses implements Runnable {
 
         List<String> result = new ArrayList<>();
 
-        Document doc = null;
+        Document doc;
         try {
+
             doc = Jsoup.connect(this.templateSite + link).get();
             Element aboutDepart = doc.getElementsByClass("content_i department").first();
             Element table = aboutDepart.getElementsByTag("tbody").first();
@@ -272,6 +272,9 @@ public class UpdateCourses implements Runnable {
             }
 
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("BAD link" + link);
             e.printStackTrace();
         }
 

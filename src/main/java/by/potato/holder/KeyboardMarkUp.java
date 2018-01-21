@@ -1,14 +1,12 @@
 package by.potato.holder;
 
 import com.vdurmont.emoji.EmojiParser;
-
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +17,7 @@ public class KeyboardMarkUp {
 
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
-        String textOnButton = new String();
+        String textOnButton;
 
         List<KeyboardRow> keyboard = new ArrayList<>();
 
@@ -28,7 +26,6 @@ public class KeyboardMarkUp {
         rowOne.add(textOnButton);
 
         KeyboardRow rowTwo = new KeyboardRow();
-  //      textOnButton = EmojiParser.parseToUnicode("Обменные пункты :round_pushpin:");
         textOnButton = EmojiParser.parseToUnicode("Обменные пункты :us::euro::ru:");
         rowTwo.add(textOnButton);
 
@@ -37,7 +34,7 @@ public class KeyboardMarkUp {
         rowThree.add(textOnButton);
 
         KeyboardRow rowFour = new KeyboardRow();
-        textOnButton = EmojiParser.parseToUnicode("Написать разработчику :question:");
+        textOnButton = EmojiParser.parseToUnicode("Идеи :question:");
         rowThree.add(textOnButton);
 
 
@@ -54,7 +51,7 @@ public class KeyboardMarkUp {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
 
-        String textOnButton = new String();
+        String textOnButton;
         List<KeyboardRow> keyboard = new ArrayList<>();
 
 
@@ -96,7 +93,7 @@ public class KeyboardMarkUp {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
 
-        String textOnButton = new String();
+        String textOnButton;
         List<KeyboardRow> keyboard = new ArrayList<>();
 
 
@@ -117,13 +114,42 @@ public class KeyboardMarkUp {
         return keyboardMarkup;
     }
 
+    public static ReplyKeyboardMarkup getDistNearNextKeyboard() {
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setResizeKeyboard(true);
+
+        String textOnButton;
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow rowOne = new KeyboardRow();
+        textOnButton = EmojiParser.parseToUnicode("Следующие :arrow_right:");
+        KeyboardButton next = new KeyboardButton();
+        next.setText(textOnButton);
+        rowOne.add(next);
+
+        KeyboardRow rowTwo = new KeyboardRow();
+        textOnButton = EmojiParser.parseToUnicode("Координаты :round_pushpin:");
+        KeyboardButton location = new KeyboardButton();
+        location.setRequestLocation(true);
+        location.setText(textOnButton);
+        rowTwo.add(location);
+
+        keyboard.add(rowOne);
+        keyboard.add(rowTwo);
+        keyboard.add(getBackButton());
+
+        keyboardMarkup.setKeyboard(keyboard);
+
+
+        return keyboardMarkup;
+    }
+
     public static ReplyKeyboardMarkup getDistNearKeyboard() {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
 
-        String textOnButton = new String();
+        String textOnButton;
         List<KeyboardRow> keyboard = new ArrayList<>();
-
 
         KeyboardRow rowOne = new KeyboardRow();
         textOnButton = EmojiParser.parseToUnicode("Координаты :round_pushpin:");
@@ -131,7 +157,6 @@ public class KeyboardMarkUp {
         location.setRequestLocation(true);
         location.setText(textOnButton);
         rowOne.add(location);
-
 
         keyboard.add(rowOne);
         keyboard.add(getBackButton());
@@ -141,6 +166,8 @@ public class KeyboardMarkUp {
 
         return keyboardMarkup;
     }
+
+
 
     public static  ReplyKeyboardMarkup getBackKeyboard() {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();

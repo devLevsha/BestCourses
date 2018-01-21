@@ -15,6 +15,7 @@ public class PropCheck {
     public static String BotApiKey;
     public static String ORA_DB_LOGIN;
     public static String ORA_DB_PASS;
+    public static String ORA_DB_URL;
 
     private File configFile;
     private final String propertiesFname;
@@ -35,11 +36,12 @@ public class PropCheck {
         BotApiKey = this.properties.getProperty("bot_api_key");
         ORA_DB_LOGIN = this.properties.getProperty("db_login");
         ORA_DB_PASS = this.properties.getProperty("db_pass");
+        ORA_DB_URL = this.properties.getProperty("db_url");
 
-    };
+    }
 
     private void readProps() {
-        FileReader fr = null;
+        FileReader fr;
         try {
             fr = new FileReader(this.configFile);
             this.properties.clear();

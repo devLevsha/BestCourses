@@ -12,12 +12,13 @@ public enum Items {
     DISTANCE("По расстоянию"),
     UNKNOW("Проблема сэр"),
     LOCATION_NEAR("Координаты"),
+    NEXT("Следующие"),
     LOCATION_DIST_STEP_ONE("Координаты"),
     LOCATION_DIST_STEP_TWO("Радиус"),
     BEST_COURSES("Лучшие курсы"),
     BANKS("Список банков"),
     BANK("Отделение"),
-    QUESTION("Написать разработчику"),
+    QUESTION("Идеи"),
     SEND("Отправить"),
     BACK("назад");
 

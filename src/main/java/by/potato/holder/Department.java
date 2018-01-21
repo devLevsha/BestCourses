@@ -1,17 +1,20 @@
 package by.potato.holder;
 
+import by.potato.Pairs.Breaks;
+import by.potato.helper.Comp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.google.maps.model.LatLng;
+
 import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import by.potato.Pairs.WorkAdditionalInfo;
-import com.fasterxml.jackson.annotation.JsonValue;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import com.google.maps.model.LatLng;
+import static by.potato.helper.StringHelper.humanReadableFormatFromDuration;
 
 public class Department {
 
@@ -42,9 +45,13 @@ public class Department {
 	@JsonIgnore
 	private String 	additionalInfo;
 
+	private static final String templateToBreak = "до перерыва %s";
+	private static final String templateEndBreak = "до конца перерыва  %s";
+	private static final String templateEndWork = "до конца работы %s";
+
 	@JsonValue
-//	private List<Day> worksTime = new ArrayList<>();
-	private Map<DayOfWeek,Day> worksTime = new ConcurrentHashMap();
+	private List<Day> worksTime = new ArrayList<>();
+
 	
 	public Department() {
 	}
@@ -142,11 +149,11 @@ public class Department {
 		this.latlng = latlng;
 	}
 
-	public Map<DayOfWeek,Day>  getWorksTime() {
+	public List<Day> getWorksTime() {
 		return worksTime;
 	}
 
-	public void setWorksTime(Map<DayOfWeek,Day> worksTime) {
+	public void setWorksTime(List<Day> worksTime) {
 		this.worksTime = worksTime;
 	}
 
@@ -178,23 +185,83 @@ public class Department {
 		this.additionalInfo = additionalInfo;
 	}
 
-	public WorkAdditionalInfo isWork(DayOfWeek dayOfWeek, LocalTime local) {
+	//работает ли отделение (перерывы не учитываются)
+	public boolean isWork(DayOfWeek dayOfWeek, LocalTime local) {
 
-		Day currentDay = worksTime.get(dayOfWeek);
+		for(Day day: worksTime) {
+			if(day.getDayOfWeek() == dayOfWeek) {
+				if( (local.compareTo(day.getBegin()) > -1 ) && (local.compareTo(day.getEnd()) < 0) ) {
+					return  true;
+				}
+			}
+		}
+		return false;
+	}
 
+	//инфо работает сейчас, перервы, сколько осталось до конца работы и т.д.
+	public String getWorTime(LocalDateTime localDateTime) {
 
+		DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
+		LocalTime localTime = localDateTime.toLocalTime();
 
-//
-//
-//		for(Day day: worksTime) {
-//			if(day.getDayOfWeek() == dayOfWeek) {
-//				if( (local.compareTo(day.getBegin()) > -1 ) && (local.compareTo(day.getEnd()) < 0) ) {
-//					return  true;
-//				}
-//			}
-//		}
+		for(Day day: worksTime) {
+			if(day.getDayOfWeek() == dayOfWeek) {
+
+				//TODO проверить правильность расчётов
+				Collections.sort(day.getBreaks(), Comp.BREAKS);
+
+				//время до начало перерыва
+				Long timeToBreakMin = this.timeToBeginBreak(localTime,day.getBreaks());
+				if(timeToBreakMin !=null) {
+					return String.format(templateToBreak,humanReadableFormatFromDuration(timeToBreakMin));
+				} else {
+					//время до конца перерыва
+					Long timeToEndBreakMin = this.timeToEndBreak(localTime,day.getBreaks());
+					if(timeToEndBreakMin != null) {
+						return String.format(templateEndBreak,humanReadableFormatFromDuration(timeToEndBreakMin));
+					} else {
+						//время до конца рабочего дня
+						Long timeToEndWork = this.timeToEndWork(day,localTime,day.getBreaks());
+						return String.format(templateEndWork,humanReadableFormatFromDuration(timeToEndWork));
+
+					}
+				}
+			}
+		}
 		return null;
 	}
+
+
+	private Long timeToBeginBreak(LocalTime localTime, List<Breaks> breaks) {
+
+		for(Breaks br: breaks) {
+			if(localTime.compareTo(br.begin) < 0) {//если есть перерыв впереди
+				return Duration.between(localTime,br.begin).toMinutes();
+			}
+		}
+
+		return null;
+	}
+
+	private Long timeToEndBreak(LocalTime localTime, List<Breaks> breaks) {
+		for(Breaks br: breaks) {
+			if(localTime.compareTo(br.begin) >= 0 && localTime.compareTo(br.end) < 0) {//находимся в промежутке перерыва
+				return Duration.between(localTime,br.end).toMinutes();
+			}
+		}
+		return null;
+	}
+
+	private Long timeToEndWork(Day day, LocalTime localTime, List<Breaks> breaks) {
+		return Duration.between(localTime, day.getEnd()).toMinutes();
+	}
+
+	//сделать доп поле в БД
+	public String getWorkTimeOriginal() {
+		//return this.workTimeOriginal; TODO
+		return null;
+	}
+
 
     @Override
 	public int hashCode() {
@@ -238,7 +305,7 @@ public class Department {
 		private Currency usd;
 		private String cityName;
 		private Double dist;
-		private Map<DayOfWeek,Day> worksTime;
+		private List<Day> worksTime;
 		private String linkToTimes;
 		private String  additionalInfo;
 
@@ -248,7 +315,7 @@ public class Department {
 			return this;
 		}
 
-		public Builder setWorksTime(Map<DayOfWeek,Day> worksTime) {
+		public Builder setWorksTime(List<Day> worksTime) {
 			this.worksTime = worksTime;
 			return this;
 		}

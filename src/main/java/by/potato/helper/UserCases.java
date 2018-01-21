@@ -1,6 +1,5 @@
 package by.potato.helper;
 
-import by.potato.db.DataBaseHelper;
 import by.potato.holder.Department;
 import com.google.maps.model.LatLng;
 import org.apache.logging.log4j.LogManager;

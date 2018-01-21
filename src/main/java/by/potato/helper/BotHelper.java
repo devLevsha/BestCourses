@@ -2,17 +2,19 @@ package by.potato.helper;
 
 import by.potato.Enum.Items;
 import by.potato.db.DataBaseHelper;
-import by.potato.helper.Geocoding;
-import by.potato.helper.StringHelper;
 import by.potato.holder.Department;
 import by.potato.holder.KeyboardMarkUp;
+import by.potato.holder.StatusUser;
 import com.google.maps.model.LatLng;
 import com.vdurmont.emoji.EmojiParser;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Location;
 import org.telegram.telegrambots.api.objects.Update;
 
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -23,10 +25,12 @@ import static by.potato.Enum.Items.*;
 
 public class BotHelper implements Runnable {
 
-    private static ConcurrentMap<Long, Deque<Items>> historyOfActions = new ConcurrentHashMap<>();
-    private static ConcurrentMap<Long, Optional<LatLng>> historyOfLocation = new ConcurrentHashMap<>();
-    private static ConcurrentMap<Long, Double> historyOfDistance = new ConcurrentHashMap<>();
-    private static ConcurrentMap<Long, String> historyOfCity = new ConcurrentHashMap<>();
+    private static ConcurrentMap<Long, StatusUser> history = new ConcurrentHashMap<>();
+
+//    private static ConcurrentMap<Long, Deque<Items>> historyOfActions = new ConcurrentHashMap<>();
+//    private static ConcurrentMap<Long, Optional<LatLng>> historyOfLocation = new ConcurrentHashMap<>();
+//    private static ConcurrentMap<Long, Double> historyOfDistance = new ConcurrentHashMap<>();
+//    private static ConcurrentMap<Long, String> historyOfCity = new ConcurrentHashMap<>();
     private Long chatId;
     private String messageInp;
     private Items action;
@@ -72,7 +76,7 @@ public class BotHelper implements Runnable {
 
                 this.location = Optional.of(latLng);
 
-                switch (historyOfActions.get(this.chatId).getLast()) {
+                switch (history.get(this.chatId).actions.getLast()) {
                     case NEAR:
                         this.action = LOCATION_NEAR;
                         break;
@@ -91,7 +95,7 @@ public class BotHelper implements Runnable {
 
             SendMessage message = new SendMessage();
             message.setChatId(this.chatId);
-            String messageOut = new String();
+            String messageOut;
 
 
             while (true) {//for action BACK
@@ -123,8 +127,8 @@ public class BotHelper implements Runnable {
                         break;
 
                     case BEST_COURSES:
-                        List<Department> departments = DataBaseHelper.getInstance().getCoursesByCity(historyOfCity.get(this.chatId));
-                        List<String> messagesDep = StringHelper.getBestCoursesByCity(departments);
+                        List<Department> departments = DataBaseHelper.getInstance().getCoursesByCity(history.get(this.chatId).city);
+                        List<String> messagesDep = StringHelper.getBestCoursesByCity(departments, null);
 
                         for (String str : messagesDep) {
                             SendMessage mess = new SendMessage();
@@ -141,7 +145,7 @@ public class BotHelper implements Runnable {
                         break;
 
                     case BANKS:
-                        List<String> banks = DataBaseHelper.getInstance().getBanksByCity(historyOfCity.get(this.chatId));
+                        List<String> banks = DataBaseHelper.getInstance().getBanksByCity(history.get(this.chatId).city);
 
                         SendMessage mes = new SendMessage();
                         messageOut = "Список Банков";
@@ -160,7 +164,7 @@ public class BotHelper implements Runnable {
                         break;
 
                     case NEAR_EXCHANGE:
-                        messageOut = "Ближайшие - список 10 ближайших работающих обменных пункта\nРасстояние - список работающих обменных пунктов в пределах Х км";
+                        messageOut = "Ближайшие - список ближайших работающих обменных пункта\nРасстояние - список работающих обменных пунктов в пределах Х км";
                         message.setText(messageOut);
                         message.setReplyMarkup(KeyboardMarkUp.getNearKeyboard());
                         forwardPosition();
@@ -179,8 +183,11 @@ public class BotHelper implements Runnable {
 
 
                     case LOCATION_NEAR:
-                        List<Department> departmentsNear = DataBaseHelper.getInstance().geoDepartment(this.location, 10);
-                        List<String> messagesNear = StringHelper.getPrintNearDepartment(departmentsNear);
+                        history.get(this.chatId).localDateTime = LocalDateTime.now();
+                        history.get(this.chatId).departments = DataBaseHelper.getInstance().geoDepartment(this.location, history.get(this.chatId).localDateTime);
+
+                    case NEXT:
+                        List<String> messagesNear = StringHelper.getPrintNearDepartment(history.get(this.chatId).departments,  history.get(this.chatId).localDateTime);
 
                         for (String str : messagesNear) {
                             SendMessage mess = new SendMessage();
@@ -191,9 +198,11 @@ public class BotHelper implements Runnable {
 
                         messageOut = "Введите свой адрес или поделитесь координами";
                         message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getDistNearKeyboard());
+                        message.setReplyMarkup(KeyboardMarkUp.getDistNearNextKeyboard());
                         sendMessage(message);
                         break;
+
+
 
                     case LOCATION_DIST_STEP_ONE:
                         messageOut = "Введите радиус поиска в км";
@@ -202,14 +211,15 @@ public class BotHelper implements Runnable {
                         sendMessage(message);
                         forwardPosition();
                         if (this.location.isPresent()) {
-                            historyOfLocation.put(this.chatId, this.location);
+                            history.get(this.chatId).location = this.location;
                         }
 
                         break;
 
                     case LOCATION_DIST_STEP_TWO:
-                        List<Department> departmentsDist = DataBaseHelper.getInstance().geoDepartmentDist(historyOfLocation.get(this.chatId), historyOfDistance.get(this.chatId));
-                        List<String> messagesDist = StringHelper.getPrintNearDepartment(departmentsDist);
+                        history.get(this.chatId).localDateTime = LocalDateTime.now();
+                        List<Department> departmentsDist = DataBaseHelper.getInstance().geoDepartmentDist(history.get(this.chatId).location, history.get(this.chatId).distance);
+                        List<String> messagesDist = StringHelper.getPrintNearDepartment(departmentsDist,  history.get(this.chatId).localDateTime);
 
 
                         for (String str : messagesDist) {
@@ -250,7 +260,7 @@ public class BotHelper implements Runnable {
 
                     default:
 
-                        switch (historyOfActions.get(this.chatId).getLast()) { //последнее действие пользователя
+                        switch (history.get(chatId).actions.getLast()) { //последнее действие пользователя
                             case NEAR: //пользователь ввёл свои координаты через стороку
                                 this.action = LOCATION_NEAR;
                                 this.location = Geocoding.getCoordFromAddress(messageInp);
@@ -285,7 +295,7 @@ public class BotHelper implements Runnable {
 
                                 try {
 
-                                    historyOfDistance.put(this.chatId, new Double(messageInp));
+                                    history.get(this.chatId).distance = new Double(messageInp);
                                     this.action = Items.LOCATION_DIST_STEP_TWO;
                                 } catch (NumberFormatException e) {
 
@@ -306,7 +316,7 @@ public class BotHelper implements Runnable {
 
                                 //город есть в списках )
                                 if (DataBaseHelper.getInstance().getCities().contains(cityName)) {
-                                    historyOfCity.put(this.chatId, cityName);
+                                    history.get(this.chatId).city = cityName;
                                     this.action = TYPE_OF_INFO;
                                 } else {
                                     SendMessage mess = new SendMessage();
@@ -359,8 +369,8 @@ public class BotHelper implements Runnable {
 
         switch (this.action) {
             case BANK:
-                List<Department> departments = DataBaseHelper.getInstance().getDepartmentByBankAndCity(historyOfCity.get(this.chatId), messageInp);
-                List<String> prints = StringHelper.getDepartment(departments);
+                List<Department> departments = DataBaseHelper.getInstance().getDepartmentByBankAndCity(history.get(this.chatId).city, messageInp);
+                List<String> prints = StringHelper.getBestCoursesByCity(departments,null);
 
                 for (String str : prints) {
                     SendMessage mess = new SendMessage();
@@ -382,29 +392,30 @@ public class BotHelper implements Runnable {
     }
 
     private void inithPosition() {
-        Deque<Items> items = new ArrayDeque<>();
-        items.add(Items.START);
-        historyOfActions.put(this.chatId, items);
 
+        StatusUser statusUser = new StatusUser();
+        statusUser.actions.add(Items.START);
+        history.put(this.chatId,statusUser);
     }
 
     private void forwardPosition() {
-        historyOfActions.get(this.chatId).add(this.action);
+        history.get(this.chatId).actions.add(this.action);
+
     }
 
     private Items backPosition() {
         try {
-            Items position = historyOfActions.get(this.chatId).getLast();
+            Items position = history.get(this.chatId).actions.getLast();
 
-            while (position == historyOfActions.get(this.chatId).getLast()) {
-                historyOfActions.get(this.chatId).removeLast();
+            while (position == history.get(this.chatId).actions.getLast()) {
+                history.get(this.chatId).actions.removeLast();
             }
 
         } catch (NoSuchElementException | NullPointerException e) {
             inithPosition();
         }
 
-        return historyOfActions.get(this.chatId).getLast();
+        return history.get(this.chatId).actions.getLast();
     }
 
     private void sendMessage(SendMessage message) {
