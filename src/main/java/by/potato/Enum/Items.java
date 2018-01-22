@@ -37,7 +37,7 @@ public enum Items {
         return Items.UNKNOW;
     }
 
-    public String getText() {
+    private String getText() {
         return text;
     }
 }

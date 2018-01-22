@@ -96,11 +96,11 @@ public class BestCoursesBot extends TelegramLongPollingBot {
             scheduler.start();
 
             JobDetail job = newJob(UpdateCourses.class)
-                    .withIdentity("updateCourses", "groupBot")
+                    .withIdentity("updateCourses", "groupBot1")
                     .build();
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity("trigger", "group")
+                    .withIdentity("trigger1", "group1")
                     .withSchedule(cronSchedule("0 35 0,2,4,6,8,10,12,14,16,18,20,22 * * ?"))
                     .build();
 
@@ -117,11 +117,11 @@ public class BestCoursesBot extends TelegramLongPollingBot {
             scheduler.start();
 
             JobDetail job = newJob(UpdateUnusedDepartment.class)
-                    .withIdentity("unusedDepartment", "groupBot")
+                    .withIdentity("unusedDepartment", "groupBot2")
                     .build();
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity("trigger", "group")
+                    .withIdentity("trigger2", "group2")
                     .withSchedule(cronSchedule("0 15 0 * * ?"))
                     .build();
 
@@ -137,11 +137,11 @@ public class BestCoursesBot extends TelegramLongPollingBot {
             scheduler.start();
 
             JobDetail job = newJob(UpdateUnusedDepartment.class)
-                    .withIdentity("workTime", "groupBot")
+                    .withIdentity("workTime", "groupBot3")
                     .build();
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity("trigger", "group")
+                    .withIdentity("trigger3", "group3")
                     .withSchedule(cronSchedule("0 0 7 * * ?"))
                     .build();
 
