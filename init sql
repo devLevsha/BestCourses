@@ -1,0 +1,153 @@
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+--
+-- База данных: `BestCourses`
+--
+CREATE DATABASE IF NOT EXISTS `BestCourses` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `BestCourses`;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `Cities`
+--
+
+CREATE TABLE `Cities` (
+  `id` int(11) NOT NULL,
+  `name` varchar(30) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `Departments`
+--
+
+CREATE TABLE `Departments` (
+  `id_cities` int(11) NOT NULL,
+  `bank_name` varchar(150) NOT NULL,
+  `address` varchar(150) NOT NULL,
+  `phone` varchar(1000) NOT NULL,
+  `euro_buy` double DEFAULT NULL,
+  `euro_sell` double DEFAULT NULL,
+  `euro_multiplier` int(11) DEFAULT NULL,
+  `rub_buy` double DEFAULT NULL,
+  `rub_sell` double DEFAULT NULL,
+  `rub_multiplier` int(11) DEFAULT NULL,
+  `doll_buy` double DEFAULT NULL,
+  `doll_sell` double DEFAULT NULL,
+  `doll_multiplier` int(11) DEFAULT NULL,
+  `lat` double NOT NULL,
+  `lng` double NOT NULL,
+  `workTimes` varchar(5000) DEFAULT NULL,
+  `workTimesOriginal` varchar(1000) DEFAULT NULL,
+  `link_work_time` varchar(250) DEFAULT NULL,
+  `last_update` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `Questions`
+--
+
+CREATE TABLE `Questions` (
+  `id` int(11) NOT NULL,
+  `chart_id` bigint(20) NOT NULL,
+  `message` varchar(5000) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Индексы сохранённых таблиц
+--
+
+--
+-- Индексы таблицы `Cities`
+--
+ALTER TABLE `Cities`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Индексы таблицы `Departments`
+--
+ALTER TABLE `Departments`
+  ADD UNIQUE KEY `id_cities` (`id_cities`,`bank_name`,`address`);
+
+--
+-- Индексы таблицы `Questions`
+--
+ALTER TABLE `Questions`
+  ADD PRIMARY KEY (`id`);
+
+
+
+  DELIMITER $$
+  --
+  -- Процедуры
+  --
+  CREATE DEFINER=`root`@`localhost` PROCEDURE `geoDepartment` (IN `mylat` DOUBLE, IN `mylon` DOUBLE)  BEGIN
+
+  select
+  	dest.bank_name,
+  	dest.address,
+  	dest.euro_buy,
+  	dest.euro_sell,
+      dest.euro_multiplier,
+      dest.rub_buy,
+      dest.rub_sell,
+      dest.rub_multiplier,
+      dest.doll_buy,
+      dest.doll_sell,
+      dest.doll_multiplier,
+      dest.workTimes,
+      city.name,
+      6371 * 2 * ASIN (SQRT (
+  			POWER (SIN ((mylat - abs(dest.lat)) * pi()/180/2),2)
+  						+ COS(mylat * pi()/180)
+  						* COS(abs(dest.lng) * pi()/180)
+  						* power( SIN ((mylon - dest.lng) * pi()/180/2),2)
+  			))
+  	as distance from Departments dest, Cities city WHERE dest.id_cities = city.id
+  	ORDER BY distance;
+
+  END$$
+
+  CREATE DEFINER=`root`@`localhost` PROCEDURE `geoDepartmentDist` (IN `mylat` DOUBLE, IN `mylon` DOUBLE, IN `dist` INT)  BEGIN
+
+  declare lon1 double;
+  declare lon2 double;
+  declare lat1 double;
+  declare lat2 double;
+
+  set lon1 = mylon-dist/abs(cos(radians(mylat))*111);
+  set lon2 = mylon+dist/abs(cos(radians(mylat))*111);
+  set lat1 = mylat-(dist/111);
+  set lat2 = mylat+(dist/111);
+
+  select 	dest.bank_name,
+  	dest.address,
+  	dest.euro_buy,
+  	dest.euro_sell,
+      dest.euro_multiplier,
+      dest.rub_buy,
+      dest.rub_sell,
+      dest.rub_multiplier,
+      dest.doll_buy,
+      dest.doll_sell,
+      dest.doll_multiplier,
+      dest.workTimes,
+      city.name,
+      6371 * 2 * ASIN (SQRT (
+  			POWER (SIN ((mylat - abs(dest.lat)) * pi()/180/2),2)
+  						+ COS(mylat * pi()/180)
+  						* COS(abs(dest.lng) * pi()/180)
+  						* power( SIN ((mylon - dest.lng) * pi()/180/2),2)
+  			))
+  	as distance from Departments as dest, Cities as city WHERE dest.id_cities = city.id and dest.lng between lon1 and lon2 and dest.lat between lat1 and lat2
+  having distance < dist ORDER BY Distance;
+
+  END$$
+
+  DELIMITER ;

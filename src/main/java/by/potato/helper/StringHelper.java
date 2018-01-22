@@ -28,7 +28,7 @@ public class StringHelper {
 
     private static final String templateBold = "<b>%s :thumbsup:</b>";
 
-    private static final int STEP_FOR_INFO = 10;
+    private static final int STEP_FOR_INFO = 5;
     private static final int STEP_INIT_POSITION = 0;
 
     public static List<String> getPrintNearDepartment(List<Department> list, LocalDateTime localDateTime) {
@@ -37,8 +37,8 @@ public class StringHelper {
         try {
             result = list.subList(STEP_INIT_POSITION, STEP_FOR_INFO);
         } catch (IndexOutOfBoundsException e) {
-            //если элементов меньше 10
-            result = list.subList(STEP_INIT_POSITION, list.size() - 1);
+            //если элементов меньше 5
+            result = list.subList(STEP_INIT_POSITION, list.size());
         }
 
         return courses(result, Info.NEAR, localDateTime, false);
