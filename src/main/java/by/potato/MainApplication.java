@@ -15,9 +15,9 @@ public class MainApplication {
         ScheduledExecutorService scheduledExecutorService =
                 Executors.newScheduledThreadPool(1);
 
-        scheduledExecutorService.scheduleAtFixedRate( new UpdateCourses(),
-                0,4,
-                TimeUnit.HOURS);
+//        scheduledExecutorService.scheduleAtFixedRate( new UpdateCourses(),
+//                0,4,
+//                TimeUnit.HOURS);
     }
 
     public static void main(String[] args) {

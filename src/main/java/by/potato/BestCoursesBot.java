@@ -3,6 +3,8 @@ package by.potato;
 import by.potato.helper.BotHelper;
 import by.potato.helper.PropCheck;
 import by.potato.helper.UpdateCourses;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -16,6 +18,10 @@ import java.util.concurrent.*;
 import static by.potato.helper.PropCheck.BotApiKey;
 import static by.potato.helper.PropCheck.BotName;
 
+import static org.quartz.CronScheduleBuilder.cronSchedule;
+import static org.quartz.JobBuilder.newJob;
+
+
 public class BestCoursesBot extends TelegramLongPollingBot {
 
     public static Queue<Update> updateMessages = new ConcurrentLinkedQueue<>();
@@ -23,7 +29,7 @@ public class BestCoursesBot extends TelegramLongPollingBot {
 
     private static final int COUNT_BOT_HELPER = 5;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SchedulerException {
 
         PropCheck propCheck = new PropCheck();
 
@@ -38,7 +44,7 @@ public class BestCoursesBot extends TelegramLongPollingBot {
         }
     }
 
-    public BestCoursesBot() {
+    public BestCoursesBot() throws SchedulerException {
 
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
@@ -68,11 +74,25 @@ public class BestCoursesBot extends TelegramLongPollingBot {
         }
 
 
-        ScheduledExecutorService scheduledExecutorService =
-                Executors.newScheduledThreadPool(1);
+//        ScheduledExecutorService scheduledExecutorService =
+//                Executors.newScheduledThreadPool(1);
+//
+//        scheduledExecutorService.scheduleAtFixedRate(new UpdateCourses(),
+//                0, 2, TimeUnit.HOURS);
 
-        scheduledExecutorService.scheduleAtFixedRate(new UpdateCourses(),
-                0, 2, TimeUnit.HOURS);
+        Scheduler scheduler = new StdSchedulerFactory().getScheduler();
+        scheduler.start();
+
+        JobDetail job = newJob(UpdateCourses.class)
+                .withIdentity("updateCourses", "groupBot")
+                .build();
+
+        CronTrigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity("trigger1", "group1")
+                .withSchedule(cronSchedule("0 53 0,2,4,6,8,10,12,14,16,18,20,22 * * ?"))
+                .build();
+
+        scheduler.scheduleJob(job, trigger);
 
     }
 

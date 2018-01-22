@@ -7,14 +7,19 @@ import by.potato.holder.Currency;
 import by.potato.holder.Day;
 import by.potato.holder.Department;
 import com.google.maps.model.LatLng;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class UpdateCourses implements Runnable {
-    private static final Logger loggerLostLatLng = LogManager.getLogger(UpdateCourses.class.getSimpleName());
+public class UpdateCourses implements Job {
+    private static final Logger logger = LogManager.getLogger(UpdateCourses.class.getSimpleName());
 
     private final String targetUrlforCity = "https://myfin.by/currency/vitebsk";
     private final String templateCity = "https://myfin.by/currency/";
@@ -179,7 +184,7 @@ public class UpdateCourses implements Runnable {
     //Преобразовать часы работы из строк в объекты и обновить в БД
     private void updateWorkTime() {
 
-        Map<String, List<Day>> result = new HashMap<>();
+        List<Triple<String, List<Day>, String>> result = new ArrayList<>();
 
         List<String> linkToWorkTime = DataBaseHelper.getInstance().getLinkWorkTime();
 
@@ -197,70 +202,71 @@ public class UpdateCourses implements Runnable {
             }
 
             if(worksTime.size() != 0) {//защита от того что сайт недоступен и т.д. чтобы не перетереть время
-                result.put(link, worksTime);
+                result.add(Triple.of(link,worksTime, String.join("\n", workTimes)));
+                //result.put(link, worksTime);
             }
 
-            result.put(link,worksTime);
         }
 
         DataBaseHelper.getInstance().updateWorkTime(result);
     }
 
     //Преобразовать часы работы из строк в объекты и обновить в БД
-    private void test() {
-
-        Map<String, List<Day>> result = new HashMap<>();
-
-        List<String> linkToWorkTime = DataBaseHelper.getInstance().getLinkWorkTime();
-
-
-
-        ExecutorService es = Executors.newFixedThreadPool(10);
-
-        for (String link : linkToWorkTime) {
-            es.submit(() -> {
-
-                //получить список строк с временем работы
-                List<String> workTimes = getWorkingTime(link);
-
-
-                List<Day> worksTime = new ArrayList<>();
-
-                for (String elem : workTimes) {
-                    WorkOfWeek.parse(elem, worksTime);
-                }
-
-                if(worksTime.size() != 0) {
-                    result.put(link, worksTime);
-                }
-            });
-        }
-
-        int before;
-        int after;
-        while (linkToWorkTime.size() != result.size() )
-        try {
-            before = result.size();
-            Thread.sleep(10000);
-            System.err.println( (result.size() * 100) / linkToWorkTime.size() + "%");
-            //System.err.println(result.size());
-            after = result.size();
-
-            if(before == after) {
-                break;
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
-
-        DataBaseHelper.getInstance().updateWorkTime(result);
-    }
+//   private void test() {
+//
+//        Map<String, List<Day>> result = new HashMap<>();
+//
+//        List<String> linkToWorkTime = DataBaseHelper.getInstance().getLinkWorkTime();
+//
+//
+//
+//        ExecutorService es = Executors.newFixedThreadPool(10);
+//
+//        for (String link : linkToWorkTime) {
+//            es.submit(() -> {
+//
+//                //получить список строк с временем работы
+//                List<String> workTimes = getWorkingTime(link);
+//
+//
+//                List<Day> worksTime = new ArrayList<>();
+//
+//                for (String elem : workTimes) {
+//                    WorkOfWeek.parse(elem, worksTime);
+//                }
+//
+//                if(worksTime.size() != 0) {
+//                    result.put(link, worksTime);
+//                }
+//            });
+//        }
+//
+//        int before;
+//        int after;
+//        while (linkToWorkTime.size() != result.size() )
+//        try {
+//            before = result.size();
+//            Thread.sleep(10000);
+//            System.err.println( (result.size() * 100) / linkToWorkTime.size() + "%");
+//            //System.err.println(result.size());
+//            after = result.size();
+//
+//            if(before == after) {
+//                break;
+//            }
+//
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//
+//
+//
+//        DataBaseHelper.getInstance().updateWorkTime(result);
+//    }
 
     //получить часы работы отделения как набор строк
     private List<String> getWorkingTime(String link) {
+
 
         List<String> result = new ArrayList<>();
 
@@ -276,24 +282,40 @@ public class UpdateCourses implements Runnable {
                 result.add(elem.getElementsByAttributeValue("itemprop", "name").first().text());
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("BAD link" + link);
+            logger.error(String.format("Bad link %s, error message = %s, cause = %s"),link,e.getMessage(),e.getCause());
             e.printStackTrace();
         }
 
         return result;
     }
 
-    @Override
-    public void run() {
-
-        ExecutorService es = Executors.newFixedThreadPool(10);
-
+//    @Override
+//    public void run() {
+//
+//        ExecutorService es = Executors.newFixedThreadPool(10);
+//
+////        es.submit( () -> {
+////            this.test();
+////        });
+//
 //        es.submit( () -> {
-//            this.test();
+//            this.updateWorkTime();
 //        });
+//
+//
+//        for (City city : cities) {
+//            es.submit(() -> {
+//                getInfoCityBanks(city);
+//            });
+//        }
+//
+//        es.shutdown();
+//    }
+
+    @Override
+    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        ExecutorService es = Executors.newFixedThreadPool(10);
 
         es.submit( () -> {
             this.updateWorkTime();
@@ -307,5 +329,7 @@ public class UpdateCourses implements Runnable {
         }
 
         es.shutdown();
+
+        System.err.println(LocalDateTime.now());
     }
 }

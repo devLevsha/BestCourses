@@ -31,10 +31,6 @@ public class BotHelper implements Runnable {
 
     private static ConcurrentMap<Long, StatusUser> history = new ConcurrentHashMap<>();
 
-//    private static ConcurrentMap<Long, Deque<Items>> historyOfActions = new ConcurrentHashMap<>();
-//    private static ConcurrentMap<Long, Optional<LatLng>> historyOfLocation = new ConcurrentHashMap<>();
-//    private static ConcurrentMap<Long, Double> historyOfDistance = new ConcurrentHashMap<>();
-//    private static ConcurrentMap<Long, String> historyOfCity = new ConcurrentHashMap<>();
     private Long chatId;
     private String messageInp;
     private Items action;
@@ -242,8 +238,9 @@ public class BotHelper implements Runnable {
 
 
                     case INFO:
-                        messageOut = "Данные любезно предоставлены <a href=\"http://www.myfin.by/\">MyFin</a>";
-                        message.setText(messageOut);
+                        messageOut = "Данные любезно предоставлены <a href=\"http://www.myfin.by/\">MyFin</a>" +
+                                "\nОбновление 15 минут каждого чётного часа :alarm_clock:";
+                        message.setText(EmojiParser.parseToUnicode(messageOut));
                         message.setReplyMarkup(KeyboardMarkUp.getBackKeyboard());
                         forwardPosition();
                         sendMessage(message);

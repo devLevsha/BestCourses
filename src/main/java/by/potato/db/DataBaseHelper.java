@@ -5,10 +5,8 @@ import by.potato.holder.City;
 import by.potato.holder.Currency;
 import by.potato.holder.Day;
 import by.potato.holder.Department;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.maps.model.LatLng;
@@ -18,10 +16,10 @@ import oracle.ucp.admin.UniversalConnectionPoolManager;
 import oracle.ucp.admin.UniversalConnectionPoolManagerImpl;
 import oracle.ucp.jdbc.PoolDataSource;
 import oracle.ucp.jdbc.PoolDataSourceFactory;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
 import java.sql.*;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -171,20 +169,19 @@ public class DataBaseHelper {
     }
 
     //обновить время работы отделений
-    public void updateWorkTime(Map<String, List<Day>> elements) {
+    public void updateWorkTime(List<Triple<String, List<Day>, String>> elements) {
 
-        String sql = "UPDATE Departments SET workTimes = ? WHERE link_work_time = ?";
+        String sql = "UPDATE Departments SET workTimes = ?, workTimesOriginal = ? WHERE link_work_time = ?";
 
         try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
+            for(Triple<String, List<Day>, String> elem : elements) {
 
-            for(Map.Entry<String, List<Day>>  elem : elements.entrySet()) {
-
-
-                String jsonInString = mapper.writeValueAsString(elem.getValue());
+                String jsonInString = mapper.writeValueAsString(elem.getMiddle());
 
                 preparedStatement.setString(1, jsonInString);
-                preparedStatement.setString(2, elem.getKey());
+                preparedStatement.setString(2, elem.getRight());
+                preparedStatement.setString(3, elem.getLeft());
 
                 preparedStatement.addBatch();
             }
@@ -194,7 +191,7 @@ public class DataBaseHelper {
 
             logger.info("Update time of work succesfully");
         } catch (SQLException e) {
-            logger.error("UpdateDepartments error: " + e.getMessage() + e.getCause());
+            logger.error("updateWorkTime error: " + e.getMessage() + e.getCause());
         } catch (JsonProcessingException e) {
             logger.error("POJO to JSON fail " + e.getMessage() + e.getCause());
         }
@@ -217,8 +214,6 @@ public class DataBaseHelper {
                 "rub_buy = ?," +
                 "rub_sell = ?," +
                 "rub_multiplier = ?";
-
-
 
         int idCity = this.citiesID.get(nameOfCity);
 
@@ -287,7 +282,7 @@ public class DataBaseHelper {
 
             logger.info("Update courses succesfully for " + nameOfCity);
         } catch (SQLException e) {
-            logger.error("UpdateDepartments error: " + e.getMessage() + e.getCause());
+            logger.error("updateDepartments error: " + e.getMessage() + e.getCause());
         } catch (JsonProcessingException e) {
             logger.error("POJO to JSON fail " + e.getMessage() + e.getCause());
         }
@@ -635,7 +630,7 @@ public class DataBaseHelper {
 
             logger.info("Insert question succesfully");
         } catch (SQLException e) {
-            logger.error("UpdateDepartments error: " + e.getMessage() + e.getCause());
+            logger.error("insertQuestion error: " + e.getMessage() + e.getCause());
         }
 
     }
