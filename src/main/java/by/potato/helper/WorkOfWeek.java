@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class WorkOfWeek {
+class WorkOfWeek {
 
     private static final Logger logger = LogManager.getLogger(WorkOfWeek.class.getSimpleName());
 

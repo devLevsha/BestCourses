@@ -2,8 +2,8 @@ package by.potato.Pairs;
 
 public class MinMax {
 
-    Double minSell;
-    Double maxBuy;
+    private Double minSell;
+    private Double maxBuy;
 
     public MinMax() {
     }

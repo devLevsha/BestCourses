@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @author Maksim Stepanov
  */
-public class HealthCheckerPool implements Runnable {
+class HealthCheckerPool implements Runnable {
 
     private static final Logger logger = LogManager
             .getFormatterLogger(HealthCheckerPool.class.getSimpleName());

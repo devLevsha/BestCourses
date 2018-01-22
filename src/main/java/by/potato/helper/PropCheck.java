@@ -11,12 +11,14 @@ import java.util.Properties;
 public class PropCheck {
 
     private static final Logger logger = LogManager.getLogger(Properties.class.getSimpleName());
+
     public static String BotName;
     public static String BotApiKey;
     public static String ORA_DB_LOGIN;
     public static String ORA_DB_PASS;
     public static String ORA_DB_URL;
-    private final String propertiesFname;
+
+    private String propertiesFname;
     private File configFile;
     private Properties properties;
 

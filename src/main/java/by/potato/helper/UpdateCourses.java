@@ -28,8 +28,8 @@ import java.util.concurrent.Executors;
 public class UpdateCourses implements Job {
     private static final Logger logger = LogManager.getLogger(UpdateCourses.class.getSimpleName());
 
-    private final String targetUrlforCity = "https://myfin.by/currency/vitebsk";
-    private final String templateCity = "https://myfin.by/currency/";
+    private static final String targetUrlforCity = "https://myfin.by/currency/vitebsk";
+    private static final String templateCity = "https://myfin.by/currency/";
 
     private Instant lastUpdate;
 
@@ -48,12 +48,10 @@ public class UpdateCourses implements Job {
     private void getNameOfCities() {
 
         try {
-            Document doc = Jsoup.connect(this.targetUrlforCity).get();
+            Document doc = Jsoup.connect(targetUrlforCity).get();
             Elements city = doc.getElementsByClass("set_city");
 
-            city.forEach(n -> {
-                cities.add(new City(n.text(), n.attr("data-slug")));
-            });
+            city.forEach(n -> cities.add(new City(n.text(), n.attr("data-slug"))));
 
             DataBaseHelper.getInstance().updateCities(cities);
 
@@ -73,7 +71,7 @@ public class UpdateCourses implements Job {
 
             //     System.out.println("link " + this.templateCity + city.getEngName());
 
-            Document doc = Jsoup.connect(this.templateCity + city.getEngName()).timeout(180000).get();
+            Document doc = Jsoup.connect(templateCity + city.getEngName()).timeout(180000).get();
 
             Element body = doc.getElementsByTag("body").first();
             Elements nameOfBanks = body.getElementsByAttributeValueContaining("class", "table-acc_link acc-link_");
@@ -92,9 +90,7 @@ public class UpdateCourses implements Job {
                 Elements depList = bank.getElementsByClass("currency_row_1");
 
 
-                depList.forEach(j -> {
-                    listBank.get(nameOfBank).add(getDepartment(j, city.getRusName(), currentAddress));
-                });
+                depList.forEach(j -> listBank.get(nameOfBank).add(getDepartment(j, city.getRusName(), currentAddress)));
             });
 
         } catch (IOException e) {
@@ -239,9 +235,7 @@ public class UpdateCourses implements Job {
         ExecutorService es = Executors.newFixedThreadPool(9);
 
         for (City city : cities) {
-            es.submit(() -> {
-                getInfoCityBanks(city);
-            });
+            es.submit(() -> getInfoCityBanks(city));
         }
 
         es.shutdown();

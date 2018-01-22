@@ -15,7 +15,7 @@ import org.quartz.JobExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UpdateWorkTime implements Job {
+class UpdateWorkTime implements Job {
 
     private static final Logger logger = LogManager.getLogger(UpdateWorkTime.class.getSimpleName());
 
@@ -68,7 +68,7 @@ public class UpdateWorkTime implements Job {
             }
 
         } catch (Exception e) {
-            logger.error(String.format("Bad link %s, error message = %s, cause = %s"), link, e.getMessage(), e.getCause());
+            logger.error(String.format("Bad link %s, error message = %s, cause = %s", link, e.getMessage(), e.getCause()));
             e.printStackTrace();
         }
 

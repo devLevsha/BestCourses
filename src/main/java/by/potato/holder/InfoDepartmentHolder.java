@@ -3,7 +3,7 @@ package by.potato.holder;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InfoDepartmentHolder {
+class InfoDepartmentHolder {
 
     private final String address;
     private Map<String, Double> course;

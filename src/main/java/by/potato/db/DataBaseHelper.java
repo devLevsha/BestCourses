@@ -42,7 +42,7 @@ public class DataBaseHelper {
     private Map<String, Integer> citiesID;
     private Set<String> cities;
 
-    public DataBaseHelper() {
+    private DataBaseHelper() {
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.WRITE_ENUMS_USING_INDEX, true);
@@ -310,7 +310,7 @@ public class DataBaseHelper {
         }
     }
 
-    public List<Department> geoDepartment(Optional<LatLng> place, LocalDateTime localDateTime) {
+    public List<Department> geoDepartment(Optional<LatLng> location, LocalDateTime localDateTime) {
 
         DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
         LocalTime localTime = localDateTime.toLocalTime();
@@ -319,8 +319,8 @@ public class DataBaseHelper {
 
         try (Connection conn = this.pds.getConnection(); CallableStatement callableStatement = conn.prepareCall("{call geoDepartment(?,?)}")) {
 
-            callableStatement.setDouble(1, place.get().lat);
-            callableStatement.setDouble(2, place.get().lng);
+            callableStatement.setDouble(1, location.get().lat);
+            callableStatement.setDouble(2, location.get().lng);
 
             ResultSet resultSet = callableStatement.executeQuery();
 
@@ -388,7 +388,7 @@ public class DataBaseHelper {
     }
 
     //dist in distantion precision is km
-    public List<Department> geoDepartmentDist(Optional<LatLng> place, double distantion) {
+    public List<Department> geoDepartmentDist(Optional<LatLng> location, double distantion) {
 
         LocalDateTime localDateTime = LocalDateTime.now();
         DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
@@ -398,8 +398,8 @@ public class DataBaseHelper {
 
         try (Connection conn = this.pds.getConnection(); CallableStatement callableStatement = conn.prepareCall("{call geoDepartmentDist(?,?,?)}")) {
 
-            callableStatement.setDouble(1, place.get().lat);
-            callableStatement.setDouble(2, place.get().lng);
+            callableStatement.setDouble(1, location.get().lat);
+            callableStatement.setDouble(2, location.get().lng);
             callableStatement.setDouble(3, distantion);
 
             ResultSet resultSet = callableStatement.executeQuery();
@@ -710,7 +710,7 @@ public class DataBaseHelper {
     }
 
     private static class LazyDataBaseHelper {
-        public static DataBaseHelper helper = new DataBaseHelper();
+        static DataBaseHelper helper = new DataBaseHelper();
     }
 }
 

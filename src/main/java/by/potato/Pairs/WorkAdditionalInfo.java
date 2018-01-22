@@ -1,6 +1,6 @@
 package by.potato.Pairs;
 
-public class WorkAdditionalInfo {
+class WorkAdditionalInfo {
     private boolean work;
     private String info;
 
