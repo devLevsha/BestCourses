@@ -22,7 +22,7 @@ public class PropCheck {
 
     private Properties  properties;
 
-    private final Logger logger = LogManager.getLogger(Properties.class.getName());
+    private static final Logger logger = LogManager.getLogger(Properties.class.getSimpleName());
 
     public PropCheck() {
 

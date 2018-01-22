@@ -43,7 +43,7 @@ public class DataBaseHelper {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    private static Logger logger = LogManager.getLogger("DataBaseHelper");
+    private static final Logger logger = LogManager.getLogger(DataBaseHelper.class.getSimpleName());
 
     public DataBaseHelper() {
 
@@ -90,7 +90,6 @@ public class DataBaseHelper {
         } catch (SQLException e) {
             logger.error("Can't init connection pool! Error: %s", e.getMessage(), e);
         }
-
 
         getIDCities();
 
@@ -159,7 +158,7 @@ public class DataBaseHelper {
                 elements.add(resultSet.getString(1));
             }
 
-            logger.info(String.format("Read address departments %d for city %s", elements.size(), city));
+      //      logger.info(String.format("Read address departments %d for city %s", elements.size(), city));
 
             preparedStatement.close();
             resultSet.close();
@@ -278,74 +277,7 @@ public class DataBaseHelper {
                     preparedStatement.setDouble(24, rub.getValueBuy());
                     preparedStatement.setDouble(25, rub.getValueSell());
                     preparedStatement.setDouble(26, rub.getMultiplier());
-//                    try {
-//
-//                        String url = "jdbc:mysql://localhost/test";
-//                        try {
-//                            Class.forName ("com.mysql.jdbc.Driver").newInstance ();
-//                        } catch (InstantiationException e) {
-//                            e.printStackTrace();
-//                        } catch (IllegalAccessException e) {
-//                            e.printStackTrace();
-//                        } catch (ClassNotFoundException e) {
-//                            e.printStackTrace();
-//                        }
-//                        Connection tt = DriverManager.getConnection ("jdbc:mysql://localhost/BestCourses?characterEncoding=UTF-8", "root", "lipwUmR");
-//
-//                        //Connection tt = DriverManager.getConnection("jdbc:mysql://127.0.0.1/BestCourses?characterEncoding=UTF-8?user=root&password=lipwUmR");
-//
-//                        String test = "INSERT INTO TEST " +
-//                                "(address,bank_name,id_cities,doll_buy,doll_sell,doll_multiplier,euro_buy,euro_sell,euro_multiplier,rub_buy,rub_sell,rub_multiplier,lat,lng,workTimes)" +
-//                                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)  " +
-//                                "ON DUPLICATE KEY UPDATE " +
-//                                "doll_buy = ?," +
-//                                "doll_sell = ?," +
-//                                "doll_multiplier = ?," +
-//                                "euro_buy = ?," +
-//                                "euro_sell = ?," +
-//                                "euro_multiplier = ?," +
-//                                "rub_buy = ?," +
-//                                "rub_sell = ?," +
-//                                "rub_multiplier = ?," +
-//                                "workTimes = ?";
-//
-//                        PreparedStatement prep = tt.prepareStatement(test);
-//
-//
-//                        prep.setString(1, department.getAddress());
-//                        prep.setString(2, entry.getKey());
-//                        prep.setInt(3, idCity);
-//                        prep.setDouble(4, doll.getValueBuy());
-//                        prep.setDouble(5, doll.getValueSell());
-//                        prep.setDouble(6, doll.getMultiplier());
-//                        prep.setDouble(7, euro.getValueBuy());
-//                        prep.setDouble(8, euro.getValueSell());
-//                        prep.setDouble(9, euro.getMultiplier());
-//                        prep.setDouble(10, rub.getValueBuy());
-//                        prep.setDouble(11, rub.getValueSell());
-//                        prep.setDouble(12, rub.getMultiplier());
-//                        prep.setDouble(13, department.getLatlng().lat);
-//                        prep.setDouble(14, department.getLatlng().lng);
-//                        prep.setString(15, jsonInString);
-//                        //section ON DUPLICATE
-//                        prep.setDouble(16, doll.getValueBuy());
-//                        prep.setDouble(17, doll.getValueSell());
-//                        prep.setDouble(18, doll.getMultiplier());
-//                        prep.setDouble(19, euro.getValueBuy());
-//                        prep.setDouble(20, euro.getValueSell());
-//                        prep.setDouble(21, euro.getMultiplier());
-//                        prep.setDouble(22, rub.getValueBuy());
-//                        prep.setDouble(23, rub.getValueSell());
-//                        prep.setDouble(24, rub.getMultiplier());
-//                        prep.setString(25, jsonInString);
-//
-//                        System.out.println(prep);
-//
-//
-//
-//                    } catch (SQLException e) {
-//                        e.printStackTrace();
-//                    }
+
                     preparedStatement.addBatch();
                 }
             }
@@ -409,6 +341,9 @@ public class DataBaseHelper {
                             new TypeReference<List<Day>>() {
                             });
 
+
+                } else {
+
                 }
 
                 Department department =
@@ -434,16 +369,8 @@ public class DataBaseHelper {
 
             logger.info("Read result succesfully = " + result.size());
 
-        } catch (SQLException e) {
+        } catch ( Exception e) {
             logger.error("Read result error: " + e.getMessage() + e.getCause());
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return result;
@@ -511,16 +438,10 @@ public class DataBaseHelper {
                 }
             }
 
-            logger.info("Read result succesfully = " + result.size());
+            logger.info("Read result geoDepartmentDist succesfully = " + result.size());
 
-        } catch (SQLException e) {
-            logger.error("Read result error: " + e.getMessage() + e.getCause());
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error("Read result geoDepartmentDist error: " + e.getMessage() + e.getCause());
         }
 
         return result;

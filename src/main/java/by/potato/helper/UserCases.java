@@ -8,7 +8,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.List;
 
 public class UserCases {
-    private  Logger loggerLostLatLng = LogManager.getLogger("UserCases");
+
 
     public List<Department> geoDepartmentLimitCount(String place, int count) {
 

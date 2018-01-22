@@ -2,6 +2,7 @@ package by.potato;
 
 import by.potato.helper.BotHelper;
 import by.potato.helper.PropCheck;
+import by.potato.helper.UpdateCourses;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -15,10 +16,12 @@ import java.util.concurrent.*;
 import static by.potato.helper.PropCheck.BotApiKey;
 import static by.potato.helper.PropCheck.BotName;
 
-public class BestCoursesBot extends TelegramLongPollingBot{
+public class BestCoursesBot extends TelegramLongPollingBot {
 
     public static Queue<Update> updateMessages = new ConcurrentLinkedQueue<>();
     public static Queue<SendMessage> outStringMessage = new ConcurrentLinkedQueue<>();
+
+    private static final int COUNT_BOT_HELPER = 5;
 
     public static void main(String[] args) {
 
@@ -41,7 +44,7 @@ public class BestCoursesBot extends TelegramLongPollingBot{
 
         executorService.scheduleWithFixedDelay(() -> {
 
-            while(true) {
+            while (true) {
 
                 SendMessage sendMessage = outStringMessage.poll();
 
@@ -56,24 +59,35 @@ public class BestCoursesBot extends TelegramLongPollingBot{
                     e.printStackTrace();
                 }
             }
-        },0,1,TimeUnit.SECONDS);
+        }, 0, 1, TimeUnit.SECONDS);
 
 
-        ExecutorService ex = Executors.newSingleThreadExecutor();
+        ExecutorService ex = Executors.newFixedThreadPool(COUNT_BOT_HELPER);
+        for (int i = 0; i < COUNT_BOT_HELPER; i++) {
+            ex.submit(new BotHelper());
+        }
 
-        ex.submit(new BotHelper());
+
+        ScheduledExecutorService scheduledExecutorService =
+                Executors.newScheduledThreadPool(1);
+
+        scheduledExecutorService.scheduleAtFixedRate(new UpdateCourses(),
+                0, 2, TimeUnit.HOURS);
 
     }
+
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() || update.hasCallbackQuery()) {
             updateMessages.add(update);
         }
     }
+
     @Override
     public String getBotUsername() {
         return BotName;
     }
+
     @Override
     public String getBotToken() {
         return BotApiKey;

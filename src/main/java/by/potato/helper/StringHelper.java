@@ -5,18 +5,20 @@ import by.potato.Enum.TypeOfCurrency;
 import by.potato.Pairs.MinMax;
 import by.potato.holder.Department;
 import com.vdurmont.emoji.EmojiParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.api.objects.Message;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public class StringHelper {
+
+    private static final Logger logger = LogManager.getLogger(StringHelper.class.getSimpleName());
 
     private static final String template_min_to_hour = "%d:%02d";
 
@@ -37,20 +39,29 @@ public class StringHelper {
             //если элементов меньше 10
             result = list.subList(STEP_INIT_POSITION, list.size() - 1);
         }
-        return courses(result, Info.NEAR, localDateTime);
+
+        Boolean onlyBestCourses = false;
+
+        return courses(result, Info.NEAR, localDateTime, onlyBestCourses);
     }
 
     public static List<String> getBestCoursesByCity(List<Department> list, LocalDateTime localDateTime) {
-        return courses(list, Info.INFO, localDateTime);
+
+        Boolean onlyBestCourses = true;
+
+        return courses(list, Info.INFO, localDateTime, onlyBestCourses);
     }
 
     public static List<String> getPrintNearDistDepartment(List<Department> list, LocalDateTime localDateTime) {
-        return courses(list, Info.NEAR, localDateTime);
+
+        Boolean onlyBestCourses = false;
+
+        return courses(list, Info.NEAR, localDateTime, onlyBestCourses);
     }
 
 
 
-    private static List<String> courses(List<Department> list, Info info, LocalDateTime localDateTime) {
+    private static List<String> courses(List<Department> list, Info info, LocalDateTime localDateTime, Boolean onlyBestCourses) {
 
 
         List<String> strings = new ArrayList<>();
@@ -79,7 +90,14 @@ public class StringHelper {
                         break;
                 }
 
-                strings.add(EmojiParser.parseToUnicode(str));
+                if(onlyBestCourses) {//только лушчие курсы
+                    if(str.contains("<b>")) {
+                        strings.add(EmojiParser.parseToUnicode(str));
+                    }
+                } else {
+                    strings.add(EmojiParser.parseToUnicode(str));
+                }
+
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -130,7 +148,8 @@ public class StringHelper {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
-    public static String humanReadableFormatFromDuration(Long min) {
+    public static String humanReadableFormatFromDuration(LocalTime localTime, LocalTime endTime) {
+        Long min = Duration.between(localTime, endTime).toMinutes();
         return String.format(template_min_to_hour, (min/ 60), (min % 60) );
     }
 }

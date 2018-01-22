@@ -8,6 +8,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Day {
@@ -48,4 +49,6 @@ public class Day {
     public LocalTime getEnd() {
         return end;
     }
+
+
 }

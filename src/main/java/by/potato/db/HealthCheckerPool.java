@@ -20,7 +20,7 @@ import oracle.ucp.jdbc.JDBCConnectionPoolStatistics;
 public class HealthCheckerPool implements Runnable {
 
     private static final Logger logger = LogManager
-            .getFormatterLogger("HealthCheckerPool");
+            .getFormatterLogger(HealthCheckerPool.class.getSimpleName());
     private JDBCConnectionPoolStatistics stat;
     private final String poolName;
 

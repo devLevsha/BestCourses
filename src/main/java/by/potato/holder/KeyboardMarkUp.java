@@ -1,6 +1,8 @@
 package by.potato.holder;
 
 import com.vdurmont.emoji.EmojiParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -12,6 +14,7 @@ import java.util.List;
 
 public class KeyboardMarkUp {
 
+    private static final Logger logger = LogManager.getLogger(KeyboardMarkUp.class.getSimpleName());
 
     public static ReplyKeyboardMarkup getStartMenu() {
 

@@ -20,6 +20,7 @@ public class Breaks {
     public Breaks() {
     }
 
+
     public Breaks(LocalTime begin, LocalTime end) {
         this.begin = begin;
         this.end = end;

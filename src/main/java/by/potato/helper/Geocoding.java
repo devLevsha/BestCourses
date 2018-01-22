@@ -14,7 +14,7 @@ import java.util.Optional;
 public class Geocoding {
 
     private static final GeoApiContext contextGoogle = new GeoApiContext.Builder().apiKey("AIzaSyAnSe8k3kMruEIhx8qDO40O2aXLloHwq9s").build();
-    private static Logger logger = LogManager.getLogger("UpdateCourses");
+    private static final Logger logger = LogManager.getLogger(Geocoding.class.getSimpleName());
 
     public static Optional<LatLng> getCoordFromAddress(String address) {
 

@@ -6,6 +6,7 @@
     </Properties>
 
     <Appenders>
+
         <Console name="Console-Appender" target="SYSTEM_OUT">
             <PatternLayout>
                 <pattern>
@@ -14,7 +15,7 @@
             </PatternLayout>
         </Console>
 
-        <File name="lostLatLng" fileName="${log-path}/lostLatLng.log" >
+        <File name="DataBaseHelper" fileName="${log-path}/DataBaseHelper.log" >
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -22,7 +23,7 @@
             </PatternLayout>
         </File>
 
-        <File name="by.potato.MainApplication" fileName="${log-path}/Constuctor.log" >
+        <File name="BotHelper" fileName="${log-path}/BotHelper.log" >
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -30,7 +31,7 @@
             </PatternLayout>
         </File>
 
-        <File name="dataBase" fileName="${log-path}/DataBaseHelper.log" >
+        <File name="Geocoding" fileName="${log-path}/Geocoding.log" >
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -38,7 +39,7 @@
             </PatternLayout>
         </File>
 
-        <File name="health" fileName="${log-path}/HealthCheckerPool.log" >
+        <File name="PropCheck" fileName="${log-path}/PropCheck.log" >
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -46,7 +47,7 @@
             </PatternLayout>
         </File>
 
-        <File name="dataBase" fileName="${log-path}/DataBaseHelper.log" >
+        <File name="StringHelper" fileName="${log-path}/StringHelper.log" >
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -54,7 +55,7 @@
             </PatternLayout>
         </File>
 
-        <File name="updateDB" fileName="${log-path}/UpdateDB.log" >
+        <File name="UpdateCourses" fileName="${log-path}/UpdateCourses.log" >
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -62,7 +63,7 @@
             </PatternLayout>
         </File>
 
-        <File name="geocoding" fileName="${log-path}/Geocoding.log" >
+        <File name="WorkOfWeek" fileName="${log-path}/WorkOfWeek.log" >
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -70,7 +71,7 @@
             </PatternLayout>
         </File>
 
-        <File name="userCases" fileName="${log-path}/UserCases.log" >
+        <File name="Department" fileName="${log-path}/Department.log" >
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -78,16 +79,7 @@
             </PatternLayout>
         </File>
 
-
-        <File name="workOfweek" fileName="${log-path}/WorkOfWeek.log" >
-            <PatternLayout>
-                <pattern>
-                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
-                </pattern>
-            </PatternLayout>
-        </File>
-
-        <File name="test" fileName="${log-path}/test.log" >
+        <File name="KeyboardMarkUp" fileName="${log-path}/KeyboardMarkUp.log" >
             <PatternLayout>
                 <pattern>
                     [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n
@@ -102,37 +94,41 @@
 
 
     <Loggers>
-        <Logger name="lostLatLng" level="debug">
-            <AppenderRef ref="lostLatLng" />
-        </Logger>
 
         <Logger name="DataBaseHelper" level="info">
-            <AppenderRef ref="dataBase" />
+            <AppenderRef ref="DataBaseHelper" />
         </Logger>
 
-        <Logger name="HealthCheckerPool" level="info">
-            <AppenderRef ref="health" />
-        </Logger>
-
-        <Logger name="UpdateDB" level="info">
-            <AppenderRef ref="updateDB" />
+        <Logger name="BotHelper" level="info">
+            <AppenderRef ref="BotHelper" />
         </Logger>
 
         <Logger name="Geocoding" level="info">
-            <AppenderRef ref="geocoding" />
+            <AppenderRef ref="Geocoding" />
         </Logger>
 
-        <Logger name="UserCases" level="info">
-            <AppenderRef ref="userCases" />
+        <Logger name="PropCheck" level="info">
+            <AppenderRef ref="PropCheck" />
         </Logger>
 
-        <Logger name="WorkOfWeek" level="error">
-            <AppenderRef ref="workOfweek" />
+        <Logger name="StringHelper" level="info">
+            <AppenderRef ref="StringHelper" />
         </Logger>
 
+        <Logger name="UpdateCourses" level="info">
+            <AppenderRef ref="UpdateCourses" />
+        </Logger>
 
-        <Logger name="test" level="info">
-            <AppenderRef ref="test" />
+        <Logger name="WorkOfWeek" level="info">
+            <AppenderRef ref="WorkOfWeek" />
+        </Logger>
+
+        <Logger name="Department" level="info">
+            <AppenderRef ref="Department" />
+        </Logger>
+
+        <Logger name="KeyboardMarkUp" level="info">
+            <AppenderRef ref="KeyboardMarkUp" />
         </Logger>
 
 

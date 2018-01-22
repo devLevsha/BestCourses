@@ -14,7 +14,7 @@ import java.util.List;
 
 public class WorkOfWeek {
 
-    private static Logger logger = LogManager.getLogger("WorkOfWeek");
+    private static final Logger logger = LogManager.getLogger(WorkOfWeek.class.getSimpleName());
 
     private static final int COUNT_DAY_OF_WEEK = 7;
 

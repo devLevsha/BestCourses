@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class UpdateCourses implements Runnable {
-    private static Logger loggerLostLatLng = LogManager.getLogger("UpdateCourses");
+    private static final Logger loggerLostLatLng = LogManager.getLogger(UpdateCourses.class.getSimpleName());
 
     private final String targetUrlforCity = "https://myfin.by/currency/vitebsk";
     private final String templateCity = "https://myfin.by/currency/";
@@ -66,7 +66,7 @@ public class UpdateCourses implements Runnable {
 
         try {
 
-            System.out.println("link " + this.templateCity + city.getEngName());
+       //     System.out.println("link " + this.templateCity + city.getEngName());
 
             Document doc = Jsoup.connect(this.templateCity + city.getEngName()).timeout(180000).get();
 
@@ -196,6 +196,9 @@ public class UpdateCourses implements Runnable {
                 WorkOfWeek.parse(elem,worksTime);
             }
 
+            if(worksTime.size() != 0) {//защита от того что сайт недоступен и т.д. чтобы не перетереть время
+                result.put(link, worksTime);
+            }
 
             result.put(link,worksTime);
         }
@@ -227,7 +230,9 @@ public class UpdateCourses implements Runnable {
                     WorkOfWeek.parse(elem, worksTime);
                 }
 
-                result.put(link, worksTime);
+                if(worksTime.size() != 0) {
+                    result.put(link, worksTime);
+                }
             });
         }
 
@@ -286,21 +291,20 @@ public class UpdateCourses implements Runnable {
 
         ExecutorService es = Executors.newFixedThreadPool(10);
 
-
-        es.submit( () -> {
-            this.test();
-        });
-
 //        es.submit( () -> {
-//            this.updateWorkTime();
+//            this.test();
 //        });
 
+        es.submit( () -> {
+            this.updateWorkTime();
+        });
 
-//        for (City city : cities) {
-//            es.submit(() -> {
-//                getInfoCityBanks(city);
-//            });
-//        }
+
+        for (City city : cities) {
+            es.submit(() -> {
+                getInfoCityBanks(city);
+            });
+        }
 
         es.shutdown();
     }

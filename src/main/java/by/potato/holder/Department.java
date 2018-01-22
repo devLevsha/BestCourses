@@ -2,9 +2,12 @@ package by.potato.holder;
 
 import by.potato.Pairs.Breaks;
 import by.potato.helper.Comp;
+import by.potato.helper.WorkOfWeek;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.maps.model.LatLng;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -18,6 +21,8 @@ import static by.potato.helper.StringHelper.humanReadableFormatFromDuration;
 
 public class Department {
 
+	@JsonIgnore
+	private static final Logger logger = LogManager.getLogger(Department.class.getSimpleName());
 	@JsonIgnore
 	private String bankName;
 	@JsonIgnore
@@ -45,9 +50,9 @@ public class Department {
 	@JsonIgnore
 	private String 	additionalInfo;
 
-	private static final String templateToBreak = "до перерыва %s";
-	private static final String templateEndBreak = "до конца перерыва  %s";
-	private static final String templateEndWork = "до конца работы %s";
+	private static final String templateToBreak = "до перерыва %s \nПерерыв %s-%s";
+	private static final String templateEndBreak = "до конца перерыва  %s\nПерерыв до %s";
+	private static final String templateEndWork = "до конца работы %s\nОкончание работы %s";
 
 	@JsonValue
 	private List<Day> worksTime = new ArrayList<>();
@@ -207,24 +212,25 @@ public class Department {
 		for(Day day: worksTime) {
 			if(day.getDayOfWeek() == dayOfWeek) {
 
-				//TODO проверить правильность расчётов
-				Collections.sort(day.getBreaks(), Comp.BREAKS);
+				if(day.getBreaks() != null) {
+					Collections.sort(day.getBreaks(), Comp.BREAKS);
 
-				//время до начало перерыва
-				Long timeToBreakMin = this.timeToBeginBreak(localTime,day.getBreaks());
-				if(timeToBreakMin !=null) {
-					return String.format(templateToBreak,humanReadableFormatFromDuration(timeToBreakMin));
-				} else {
-					//время до конца перерыва
-					Long timeToEndBreakMin = this.timeToEndBreak(localTime,day.getBreaks());
-					if(timeToEndBreakMin != null) {
-						return String.format(templateEndBreak,humanReadableFormatFromDuration(timeToEndBreakMin));
+					//время до начало перерыва
+					Breaks timeToBreakMin = this.timeToBeginBreak(localTime, day.getBreaks());
+					if (timeToBreakMin != null) {
+						return String.format(templateToBreak, humanReadableFormatFromDuration(localTime, timeToBreakMin.begin), timeToBreakMin.begin, timeToBreakMin.end);
 					} else {
-						//время до конца рабочего дня
-						Long timeToEndWork = this.timeToEndWork(day,localTime,day.getBreaks());
-						return String.format(templateEndWork,humanReadableFormatFromDuration(timeToEndWork));
-
+						//время до конца перерыва
+						Breaks timeToEndBreakMin = this.timeToEndBreak(localTime, day.getBreaks());
+						if (timeToEndBreakMin != null) {
+							return String.format(templateEndBreak, humanReadableFormatFromDuration(localTime, timeToEndBreakMin.end), timeToEndBreakMin.end);
+						}
 					}
+
+				} else {
+					//время до конца рабочего дня
+					Breaks timeToEndWork = this.timeToEndWork(day, localTime);
+					return String.format(templateEndWork, humanReadableFormatFromDuration(localTime, timeToEndWork.end), timeToEndWork.end);
 				}
 			}
 		}
@@ -232,28 +238,28 @@ public class Department {
 	}
 
 
-	private Long timeToBeginBreak(LocalTime localTime, List<Breaks> breaks) {
+	private Breaks timeToBeginBreak(LocalTime localTime, List<Breaks> breaks) {
 
 		for(Breaks br: breaks) {
 			if(localTime.compareTo(br.begin) < 0) {//если есть перерыв впереди
-				return Duration.between(localTime,br.begin).toMinutes();
+				return br;
 			}
 		}
 
 		return null;
 	}
 
-	private Long timeToEndBreak(LocalTime localTime, List<Breaks> breaks) {
+	private Breaks timeToEndBreak(LocalTime localTime, List<Breaks> breaks) {
 		for(Breaks br: breaks) {
 			if(localTime.compareTo(br.begin) >= 0 && localTime.compareTo(br.end) < 0) {//находимся в промежутке перерыва
-				return Duration.between(localTime,br.end).toMinutes();
+				return br;
 			}
 		}
 		return null;
 	}
 
-	private Long timeToEndWork(Day day, LocalTime localTime, List<Breaks> breaks) {
-		return Duration.between(localTime, day.getEnd()).toMinutes();
+	private Breaks timeToEndWork(Day day, LocalTime localTime) {
+		return new Breaks(localTime,day.getEnd());
 	}
 
 	//сделать доп поле в БД
