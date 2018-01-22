@@ -22,8 +22,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -31,17 +33,14 @@ import static by.potato.helper.PropCheck.*;
 
 public class DataBaseHelper {
 
+    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final Logger logger = LogManager.getLogger(DataBaseHelper.class.getSimpleName());
     private String poolName;
     private PoolDataSource pds;
     private ScheduledExecutorService sc;
     private UniversalConnectionPoolManager mgr;
-
     private Map<String, Integer> citiesID;
     private Set<String> cities;
-
-    private static final ObjectMapper mapper = new ObjectMapper();
-
-    private static final Logger logger = LogManager.getLogger(DataBaseHelper.class.getSimpleName());
 
     public DataBaseHelper() {
 
@@ -91,6 +90,10 @@ public class DataBaseHelper {
 
         getIDCities();
 
+    }
+
+    public static DataBaseHelper getInstance() {
+        return LazyDataBaseHelper.helper;
     }
 
     public void destroyPool() {
@@ -156,7 +159,7 @@ public class DataBaseHelper {
                 elements.add(resultSet.getString(1));
             }
 
-      //      logger.info(String.format("Read address departments %d for city %s", elements.size(), city));
+            //      logger.info(String.format("Read address departments %d for city %s", elements.size(), city));
 
             preparedStatement.close();
             resultSet.close();
@@ -175,7 +178,7 @@ public class DataBaseHelper {
 
         try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
-            for(Triple<String, List<Day>, String> elem : elements) {
+            for (Triple<String, List<Day>, String> elem : elements) {
 
                 String jsonInString = mapper.writeValueAsString(elem.getMiddle());
 
@@ -199,11 +202,11 @@ public class DataBaseHelper {
     }
 
     //обновить или добавить новое отделение
-    public void updateDepartments(Map<String, List<Department>> listBank, String nameOfCity) {
+    public void updateDepartments(Map<String, List<Department>> listBank, String nameOfCity, Instant instans) {
 
         String sql = "INSERT INTO Departments " +
-                "(address,bank_name,id_cities,doll_buy,doll_sell,doll_multiplier,euro_buy,euro_sell,euro_multiplier,rub_buy,rub_sell,rub_multiplier,lat,lng,workTimes,link_work_time,phone)" +
-                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)  " +
+                "(address,bank_name,id_cities,doll_buy,doll_sell,doll_multiplier,euro_buy,euro_sell,euro_multiplier,rub_buy,rub_sell,rub_multiplier,lat,lng,workTimes,link_work_time,phone,last_update)" +
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)  " +
                 "ON DUPLICATE KEY UPDATE " +
                 "doll_buy = ?," +
                 "doll_sell = ?," +
@@ -213,7 +216,8 @@ public class DataBaseHelper {
                 "euro_multiplier = ?," +
                 "rub_buy = ?," +
                 "rub_sell = ?," +
-                "rub_multiplier = ?";
+                "rub_multiplier = ?," +
+                "last_update = ?";
 
         int idCity = this.citiesID.get(nameOfCity);
 
@@ -261,17 +265,19 @@ public class DataBaseHelper {
                     preparedStatement.setString(15, jsonInString);
                     preparedStatement.setString(16, department.getLinkToTimes());
                     preparedStatement.setString(17, department.getTel());
+                    preparedStatement.setLong(18, instans.getEpochSecond());
 
                     //section ON DUPLICATE
-                    preparedStatement.setDouble(18, doll.getValueBuy());
-                    preparedStatement.setDouble(19, doll.getValueSell());
-                    preparedStatement.setDouble(20, doll.getMultiplier());
-                    preparedStatement.setDouble(21, euro.getValueBuy());
-                    preparedStatement.setDouble(22, euro.getValueSell());
-                    preparedStatement.setDouble(23, euro.getMultiplier());
-                    preparedStatement.setDouble(24, rub.getValueBuy());
-                    preparedStatement.setDouble(25, rub.getValueSell());
-                    preparedStatement.setDouble(26, rub.getMultiplier());
+                    preparedStatement.setDouble(19, doll.getValueBuy());
+                    preparedStatement.setDouble(20, doll.getValueSell());
+                    preparedStatement.setDouble(21, doll.getMultiplier());
+                    preparedStatement.setDouble(22, euro.getValueBuy());
+                    preparedStatement.setDouble(23, euro.getValueSell());
+                    preparedStatement.setDouble(24, euro.getMultiplier());
+                    preparedStatement.setDouble(25, rub.getValueBuy());
+                    preparedStatement.setDouble(26, rub.getValueSell());
+                    preparedStatement.setDouble(27, rub.getMultiplier());
+                    preparedStatement.setLong(28, instans.getEpochSecond());
 
                     preparedStatement.addBatch();
                 }
@@ -285,6 +291,22 @@ public class DataBaseHelper {
             logger.error("updateDepartments error: " + e.getMessage() + e.getCause());
         } catch (JsonProcessingException e) {
             logger.error("POJO to JSON fail " + e.getMessage() + e.getCause());
+        }
+    }
+
+    public void deleteUnusedDepartment() {
+        Long currentMinusTwoDays = Instant.now().minus(2, ChronoUnit.DAYS).getEpochSecond();
+
+        String sql = "DELETE FROM Departments WHERE last_update < ?";
+
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+
+            preparedStatement.setLong(1, currentMinusTwoDays);
+
+            preparedStatement.execute();
+
+        } catch (SQLException e) {
+            logger.error("Error deleteUnusedDepartment " + e.getMessage() + e.getCause());
         }
     }
 
@@ -331,14 +353,10 @@ public class DataBaseHelper {
 
                 //TODO разобраться почему в БД есть нераспаршенное время
                 List<Day> workTime = new ArrayList<>();
-                if(worksTimeStr != null) {
+                if (worksTimeStr != null) {
                     workTime = mapper.readValue(worksTimeStr,
                             new TypeReference<List<Day>>() {
                             });
-
-
-                } else {
-
                 }
 
                 Department department =
@@ -353,18 +371,16 @@ public class DataBaseHelper {
                                 .setWorksTime(workTime)
                                 .build();
 
-                if (department.isWork(dayOfWeek,localTime)) {
+                if (department.isWork(dayOfWeek, localTime)) {
                     result.add(department);
                 }
-
-
 
 
             }
 
             logger.info("Read result succesfully = " + result.size());
 
-        } catch ( Exception e) {
+        } catch (Exception e) {
             logger.error("Read result error: " + e.getMessage() + e.getCause());
         }
 
@@ -547,7 +563,7 @@ public class DataBaseHelper {
     }
 
     //список отделений в определённом городе
-    public List<Department> getDepartmentByBankAndCity(String city,String bankName) {
+    public List<Department> getDepartmentByBankAndCity(String city, String bankName) {
         List<Department> result = new ArrayList<>();
 
         String sql = "SELECT " +
@@ -642,7 +658,7 @@ public class DataBaseHelper {
 
         String sql = "select * from Cities";
 
-        try (Connection conn = this.pds.getConnection(); Statement statement = conn.createStatement();) {
+        try (Connection conn = this.pds.getConnection(); Statement statement = conn.createStatement()) {
 
             ResultSet resultSet = statement.executeQuery(sql);
 
@@ -695,10 +711,6 @@ public class DataBaseHelper {
 
     private static class LazyDataBaseHelper {
         public static DataBaseHelper helper = new DataBaseHelper();
-    }
-
-    public static DataBaseHelper getInstance() {
-        return LazyDataBaseHelper.helper;
     }
 }
 

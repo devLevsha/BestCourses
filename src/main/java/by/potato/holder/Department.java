@@ -2,7 +2,6 @@ package by.potato.holder;
 
 import by.potato.Pairs.Breaks;
 import by.potato.helper.Comp;
-import by.potato.helper.WorkOfWeek;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.maps.model.LatLng;
@@ -10,11 +9,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.DayOfWeek;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static by.potato.helper.StringHelper.humanReadableFormatFromDuration;
@@ -23,6 +20,9 @@ public class Department {
 
 	@JsonIgnore
 	private static final Logger logger = LogManager.getLogger(Department.class.getSimpleName());
+	private static final String templateToBreak = "до перерыва %s \nПерерыв %s-%s";
+	private static final String templateEndBreak = "до конца перерыва  %s\nПерерыв до %s";
+	private static final String templateEndWork = "до конца работы %s\nОкончание работы %s";
 	@JsonIgnore
 	private String bankName;
 	@JsonIgnore
@@ -48,16 +48,11 @@ public class Department {
 	@JsonIgnore
 	private String linkToTimes;
 	@JsonIgnore
-	private String 	additionalInfo;
-
-	private static final String templateToBreak = "до перерыва %s \nПерерыв %s-%s";
-	private static final String templateEndBreak = "до конца перерыва  %s\nПерерыв до %s";
-	private static final String templateEndWork = "до конца работы %s\nОкончание работы %s";
-
+	private String additionalInfo;
 	@JsonValue
 	private List<Day> worksTime = new ArrayList<>();
 
-	
+
 	public Department() {
 	}
 
@@ -84,6 +79,10 @@ public class Department {
 
 	public Currency getEur() {
 		return eur;
+	}
+
+	public void setEur(Currency eur) {
+		this.eur = eur;
 	}
 
 	public void setEuro(Currency eur) {
@@ -145,7 +144,7 @@ public class Department {
 	public void setCurrencies(List<Currency> currencies) {
 		this.currencies = currencies;
 	}
-	
+
 	public LatLng getLatlng() {
 		return latlng;
 	}
@@ -178,10 +177,6 @@ public class Department {
 		this.cityName = cityName;
 	}
 
-	public void setEur(Currency eur) {
-		this.eur = eur;
-	}
-
 	public String getAdditionalInfo() {
 		return additionalInfo;
 	}
@@ -193,10 +188,10 @@ public class Department {
 	//работает ли отделение (перерывы не учитываются)
 	public boolean isWork(DayOfWeek dayOfWeek, LocalTime local) {
 
-		for(Day day: worksTime) {
-			if(day.getDayOfWeek() == dayOfWeek) {
-				if( (local.compareTo(day.getBegin()) > -1 ) && (local.compareTo(day.getEnd()) < 0) ) {
-					return  true;
+		for (Day day : worksTime) {
+			if (day.getDayOfWeek() == dayOfWeek) {
+				if ((local.compareTo(day.getBegin()) > -1) && (local.compareTo(day.getEnd()) < 0)) {
+					return true;
 				}
 			}
 		}
@@ -209,11 +204,11 @@ public class Department {
 		DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
 		LocalTime localTime = localDateTime.toLocalTime();
 
-		for(Day day: worksTime) {
-			if(day.getDayOfWeek() == dayOfWeek) {
+		for (Day day : worksTime) {
+			if (day.getDayOfWeek() == dayOfWeek) {
 
-				if(day.getBreaks() != null) {
-					Collections.sort(day.getBreaks(), Comp.BREAKS);
+				if (day.getBreaks() != null) {
+					day.getBreaks().sort(Comp.BREAKS);
 
 					//время до начало перерыва
 					Breaks timeToBreakMin = this.timeToBeginBreak(localTime, day.getBreaks());
@@ -240,8 +235,8 @@ public class Department {
 
 	private Breaks timeToBeginBreak(LocalTime localTime, List<Breaks> breaks) {
 
-		for(Breaks br: breaks) {
-			if(localTime.compareTo(br.begin) < 0) {//если есть перерыв впереди
+		for (Breaks br : breaks) {
+			if (localTime.compareTo(br.begin) < 0) {//если есть перерыв впереди
 				return br;
 			}
 		}
@@ -250,8 +245,8 @@ public class Department {
 	}
 
 	private Breaks timeToEndBreak(LocalTime localTime, List<Breaks> breaks) {
-		for(Breaks br: breaks) {
-			if(localTime.compareTo(br.begin) >= 0 && localTime.compareTo(br.end) < 0) {//находимся в промежутке перерыва
+		for (Breaks br : breaks) {
+			if (localTime.compareTo(br.begin) >= 0 && localTime.compareTo(br.end) < 0) {//находимся в промежутке перерыва
 				return br;
 			}
 		}
@@ -259,7 +254,7 @@ public class Department {
 	}
 
 	private Breaks timeToEndWork(Day day, LocalTime localTime) {
-		return new Breaks(localTime,day.getEnd());
+		return new Breaks(localTime, day.getEnd());
 	}
 
 	//сделать доп поле в БД
@@ -313,7 +308,7 @@ public class Department {
 		private Double dist;
 		private List<Day> worksTime;
 		private String linkToTimes;
-		private String  additionalInfo;
+		private String additionalInfo;
 
 
 		public Builder setBankName(String bankName) {

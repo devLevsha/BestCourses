@@ -18,7 +18,7 @@ public class WorkOfWeek {
 
     private static final int COUNT_DAY_OF_WEEK = 7;
 
-    private static final String []allDays = {"пн","вт","ср","чт","пт","сб","вс"};
+    private static final String[] allDays = {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
 
     public static void parse(String str, List<Day> result) {
 
@@ -110,7 +110,7 @@ public class WorkOfWeek {
 
             }
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             System.err.println("BAD string " + str);
             e.printStackTrace();
         }
@@ -143,13 +143,13 @@ public class WorkOfWeek {
 
         String[] breaks = str.trim().split(",");
 
-        for(String s : breaks) {
-            String [] time = s.split("-");
+        for (String s : breaks) {
+            String[] time = s.split("-");
 
             try {
                 result.add(new Breaks(LocalTime.parse(time[0].trim()), LocalTime.parse(time[1].trim())));
             } catch (DateTimeParseException e) {
-                throw new Exception("Parsing breaks" , e.getCause());
+                throw new Exception("Parsing breaks", e.getCause());
             }
         }
 

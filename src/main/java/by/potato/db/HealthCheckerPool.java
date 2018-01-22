@@ -1,28 +1,24 @@
 package by.potato.db;
 
+import oracle.ucp.jdbc.JDBCConnectionPoolStatistics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import oracle.ucp.jdbc.JDBCConnectionPoolStatistics;
-
 /**
- *
- *
  * Health checker for database connection pool
- *
+ * <p>
  * Version: 1.0
- *
+ * <p>
  * Copyright: OOO Aplana
  *
  * @author Maksim Stepanov
- *
  */
 public class HealthCheckerPool implements Runnable {
 
     private static final Logger logger = LogManager
             .getFormatterLogger(HealthCheckerPool.class.getSimpleName());
-    private JDBCConnectionPoolStatistics stat;
     private final String poolName;
+    private JDBCConnectionPoolStatistics stat;
 
     public HealthCheckerPool(JDBCConnectionPoolStatistics stat, String poolName) {
         logger.info("Start pool statistics");

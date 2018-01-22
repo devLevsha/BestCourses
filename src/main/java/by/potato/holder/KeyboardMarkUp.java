@@ -80,7 +80,7 @@ public class KeyboardMarkUp {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
 
-        String textOnButton = new String();
+        String textOnButton;
         List<KeyboardRow> keyboard = new ArrayList<>();
 
 
@@ -171,8 +171,7 @@ public class KeyboardMarkUp {
     }
 
 
-
-    public static  ReplyKeyboardMarkup getBackKeyboard() {
+    public static ReplyKeyboardMarkup getBackKeyboard() {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
 
@@ -183,24 +182,24 @@ public class KeyboardMarkUp {
 
         keyboardMarkup.setKeyboard(keyboard);
 
-        return  keyboardMarkup;
+        return keyboardMarkup;
     }
 
     public static ReplyKeyboardMarkup getHideKeyboard() {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setOneTimeKeyboard(true);
 
-        return  keyboardMarkup;
+        return keyboardMarkup;
     }
 
     public static InlineKeyboardMarkup getBanks(List<String> banks) {
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        for(String bank : banks) {
+        for (String bank : banks) {
 
             List<InlineKeyboardButton> rowInline = new ArrayList<>();
-            rowInline.add(new InlineKeyboardButton().setText(bank).setCallbackData("Отделение_" +bank));
+            rowInline.add(new InlineKeyboardButton().setText(bank).setCallbackData("Отделение_" + bank));
 
             rowsInline.add(rowInline);
 
@@ -226,8 +225,8 @@ public class KeyboardMarkUp {
 
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
         rowInline.add(new InlineKeyboardButton().
-                            setText(EmojiParser.parseToUnicode("назад :back:")).
-                            setCallbackData("back"));
+                setText(EmojiParser.parseToUnicode("назад :back:")).
+                setCallbackData("back"));
 
         return rowInline;
     }

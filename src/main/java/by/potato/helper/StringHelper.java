@@ -12,9 +12,10 @@ import org.telegram.telegrambots.api.objects.Message;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class StringHelper {
 
@@ -40,25 +41,16 @@ public class StringHelper {
             result = list.subList(STEP_INIT_POSITION, list.size() - 1);
         }
 
-        Boolean onlyBestCourses = false;
-
-        return courses(result, Info.NEAR, localDateTime, onlyBestCourses);
+        return courses(result, Info.NEAR, localDateTime, false);
     }
 
     public static List<String> getBestCoursesByCity(List<Department> list, LocalDateTime localDateTime) {
-
-        Boolean onlyBestCourses = true;
-
-        return courses(list, Info.INFO, localDateTime, onlyBestCourses);
+        return courses(list, Info.INFO, localDateTime, true);
     }
 
     public static List<String> getPrintNearDistDepartment(List<Department> list, LocalDateTime localDateTime) {
-
-        Boolean onlyBestCourses = false;
-
-        return courses(list, Info.NEAR, localDateTime, onlyBestCourses);
+        return courses(list, Info.NEAR, localDateTime, false);
     }
-
 
 
     private static List<String> courses(List<Department> list, Info info, LocalDateTime localDateTime, Boolean onlyBestCourses) {
@@ -90,8 +82,8 @@ public class StringHelper {
                         break;
                 }
 
-                if(onlyBestCourses) {//только лушчие курсы
-                    if(str.contains("<b>")) {
+                if (onlyBestCourses) {//только лушчие курсы
+                    if (str.contains("<b>")) {
                         strings.add(EmojiParser.parseToUnicode(str));
                     }
                 } else {
@@ -150,6 +142,6 @@ public class StringHelper {
 
     public static String humanReadableFormatFromDuration(LocalTime localTime, LocalTime endTime) {
         Long min = Duration.between(localTime, endTime).toMinutes();
-        return String.format(template_min_to_hour, (min/ 60), (min % 60) );
+        return String.format(template_min_to_hour, (min / 60), (min % 60));
     }
 }

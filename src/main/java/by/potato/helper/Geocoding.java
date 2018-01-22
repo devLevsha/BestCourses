@@ -18,7 +18,7 @@ public class Geocoding {
 
     public static Optional<LatLng> getCoordFromAddress(String address) {
 
-        logger.info("Geocoding address : " +address);
+        logger.info("Geocoding address : " + address);
 
         try {
             GeocodingResult[] coordinates = GeocodingApi.newRequest(contextGoogle)

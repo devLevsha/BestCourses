@@ -1,16 +1,14 @@
 package by.potato;
 
 import by.potato.helper.PropCheck;
-import by.potato.helper.UpdateCourses;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 
 public class MainApplication {
 
-    public static void initFunction() {
+    private static void initFunction() {
 
         ScheduledExecutorService scheduledExecutorService =
                 Executors.newScheduledThreadPool(1);
@@ -49,7 +47,7 @@ public class MainApplication {
 //Пн-Чт: 09:30-18:00 Перерыв: 14:15-15:00, 12:00-12:15
 //        Пт: 09:30-17:00 Перерыв: 14:15-15:00, 12:00-12:15
 //        Сб-Вс: Выходной
- //	Пн-Пт: 09:00-18:00 Перерыв: 14:00-15:00,
-  //          Сб-Вс: Выходной Перерыв: 13:30-14:30
+//	Пн-Пт: 09:00-18:00 Перерыв: 14:00-15:00,
+//          Сб-Вс: Выходной Перерыв: 13:30-14:30
 
 //Пн-Вс: 09:00-19:15 Перерыв: 13:00-14:00, 17:00-17:10

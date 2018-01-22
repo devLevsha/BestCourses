@@ -28,16 +28,16 @@ public enum Items {
         this.text = text;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public static Items parse (String str) {
-        for(Items e:Items.values()){
-            if(e.getText().equals(str)){
+    public static Items parse(String str) {
+        for (Items e : Items.values()) {
+            if (e.getText().equals(str)) {
                 return e;
             }
         }
         return Items.UNKNOW;
+    }
+
+    public String getText() {
+        return text;
     }
 }

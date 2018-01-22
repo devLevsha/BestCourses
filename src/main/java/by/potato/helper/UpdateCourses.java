@@ -4,10 +4,8 @@ import by.potato.Enum.TypeOfCurrency;
 import by.potato.db.DataBaseHelper;
 import by.potato.holder.City;
 import by.potato.holder.Currency;
-import by.potato.holder.Day;
 import by.potato.holder.Department;
 import com.google.maps.model.LatLng;
-import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -16,10 +14,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,12 +30,15 @@ public class UpdateCourses implements Job {
 
     private final String targetUrlforCity = "https://myfin.by/currency/vitebsk";
     private final String templateCity = "https://myfin.by/currency/";
-    private final String templateSite = "https://myfin.by";
+
+    private Instant lastUpdate;
+
 
     private List<City> cities = new ArrayList<>();
 
     public UpdateCourses() {
         this.getNameOfCities();
+        this.lastUpdate = Instant.now();
 
         //for debug
         //cities.add(new City("Несвиж","nesvizh"));
@@ -71,7 +71,7 @@ public class UpdateCourses implements Job {
 
         try {
 
-       //     System.out.println("link " + this.templateCity + city.getEngName());
+            //     System.out.println("link " + this.templateCity + city.getEngName());
 
             Document doc = Jsoup.connect(this.templateCity + city.getEngName()).timeout(180000).get();
 
@@ -101,7 +101,7 @@ public class UpdateCourses implements Job {
             e.printStackTrace();
         }
 
-        DataBaseHelper.getInstance().updateDepartments(listBank, city.getRusName());
+        DataBaseHelper.getInstance().updateDepartments(listBank, city.getRusName(), this.lastUpdate);
     }
 
     //получить данные о курсе валют в определённом отделини
@@ -182,39 +182,9 @@ public class UpdateCourses implements Job {
     }
 
     //Преобразовать часы работы из строк в объекты и обновить в БД
-    private void updateWorkTime() {
-
-        List<Triple<String, List<Day>, String>> result = new ArrayList<>();
-
-        List<String> linkToWorkTime = DataBaseHelper.getInstance().getLinkWorkTime();
-
-        for(String link: linkToWorkTime) {
-
-            //получить список строк с временем работы
-            List<String> workTimes = getWorkingTime(link);
-
-
-            List<Day> worksTime = new ArrayList<>();
-
-
-            for(String elem: workTimes) {
-                WorkOfWeek.parse(elem,worksTime);
-            }
-
-            if(worksTime.size() != 0) {//защита от того что сайт недоступен и т.д. чтобы не перетереть время
-                result.add(Triple.of(link,worksTime, String.join("\n", workTimes)));
-                //result.put(link, worksTime);
-            }
-
-        }
-
-        DataBaseHelper.getInstance().updateWorkTime(result);
-    }
-
-    //Преобразовать часы работы из строк в объекты и обновить в БД
 //   private void test() {
 //
-//        Map<String, List<Day>> result = new HashMap<>();
+//        List<Triple<String, List<Day>, String>> result = new ArrayList<>();
 //
 //        List<String> linkToWorkTime = DataBaseHelper.getInstance().getLinkWorkTime();
 //
@@ -236,7 +206,7 @@ public class UpdateCourses implements Job {
 //                }
 //
 //                if(worksTime.size() != 0) {
-//                    result.put(link, worksTime);
+//                    result.add(Triple.of(link,worksTime, String.join("\n", workTimes)));
 //                }
 //            });
 //        }
@@ -264,63 +234,9 @@ public class UpdateCourses implements Job {
 //        DataBaseHelper.getInstance().updateWorkTime(result);
 //    }
 
-    //получить часы работы отделения как набор строк
-    private List<String> getWorkingTime(String link) {
-
-
-        List<String> result = new ArrayList<>();
-
-        Document doc;
-        try {
-
-            doc = Jsoup.connect(this.templateSite + link).get();
-            Element aboutDepart = doc.getElementsByClass("content_i department").first();
-            Element table = aboutDepart.getElementsByTag("tbody").first();
-            Elements workTimes = aboutDepart.getElementsByAttributeValue("itemprop", "openingHoursSpecification");
-
-            for (Element elem : workTimes) {
-                result.add(elem.getElementsByAttributeValue("itemprop", "name").first().text());
-            }
-
-        } catch (Exception e) {
-            logger.error(String.format("Bad link %s, error message = %s, cause = %s"),link,e.getMessage(),e.getCause());
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
-//    @Override
-//    public void run() {
-//
-//        ExecutorService es = Executors.newFixedThreadPool(10);
-//
-////        es.submit( () -> {
-////            this.test();
-////        });
-//
-//        es.submit( () -> {
-//            this.updateWorkTime();
-//        });
-//
-//
-//        for (City city : cities) {
-//            es.submit(() -> {
-//                getInfoCityBanks(city);
-//            });
-//        }
-//
-//        es.shutdown();
-//    }
-
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        ExecutorService es = Executors.newFixedThreadPool(10);
-
-        es.submit( () -> {
-            this.updateWorkTime();
-        });
-
+    public void execute(JobExecutionContext jobExecutionContext) {
+        ExecutorService es = Executors.newFixedThreadPool(9);
 
         for (City city : cities) {
             es.submit(() -> {
@@ -329,7 +245,5 @@ public class UpdateCourses implements Job {
         }
 
         es.shutdown();
-
-        System.err.println(LocalDateTime.now());
     }
 }

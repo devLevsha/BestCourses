@@ -34,7 +34,7 @@ public class BotHelper implements Runnable {
     private Long chatId;
     private String messageInp;
     private Items action;
-    private Optional<LatLng> location = Optional.empty();
+    private Optional<LatLng> location;
 
     @Override
     public void run() {
@@ -187,7 +187,7 @@ public class BotHelper implements Runnable {
                         history.get(this.chatId).departments = DataBaseHelper.getInstance().geoDepartment(this.location, history.get(this.chatId).localDateTime);
 
                     case NEXT:
-                        List<String> messagesNear = StringHelper.getPrintNearDepartment(history.get(this.chatId).departments,  history.get(this.chatId).localDateTime);
+                        List<String> messagesNear = StringHelper.getPrintNearDepartment(history.get(this.chatId).departments, history.get(this.chatId).localDateTime);
 
                         for (String str : messagesNear) {
                             SendMessage mess = new SendMessage();
@@ -201,7 +201,6 @@ public class BotHelper implements Runnable {
                         message.setReplyMarkup(KeyboardMarkUp.getDistNearNextKeyboard());
                         sendMessage(message);
                         break;
-
 
 
                     case LOCATION_DIST_STEP_ONE:
@@ -219,7 +218,7 @@ public class BotHelper implements Runnable {
                     case LOCATION_DIST_STEP_TWO:
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
                         List<Department> departmentsDist = DataBaseHelper.getInstance().geoDepartmentDist(history.get(this.chatId).location, history.get(this.chatId).distance);
-                        List<String> messagesDist = StringHelper.getPrintNearDepartment(departmentsDist,  history.get(this.chatId).localDateTime);
+                        List<String> messagesDist = StringHelper.getPrintNearDepartment(departmentsDist, history.get(this.chatId).localDateTime);
 
 
                         for (String str : messagesDist) {
@@ -332,7 +331,7 @@ public class BotHelper implements Runnable {
 
 
                             case QUESTION:
-                                DataBaseHelper.getInstance().insertQuestion(this.chatId,messageInp);
+                                DataBaseHelper.getInstance().insertQuestion(this.chatId, messageInp);
 
                                 SendMessage messOut = new SendMessage();
                                 String text = "Отправлено :outbox_tray:";
@@ -371,7 +370,7 @@ public class BotHelper implements Runnable {
         switch (this.action) {
             case BANK:
                 List<Department> departments = DataBaseHelper.getInstance().getDepartmentByBankAndCity(history.get(this.chatId).city, messageInp);
-                List<String> prints = StringHelper.getBestCoursesByCity(departments,null);
+                List<String> prints = StringHelper.getBestCoursesByCity(departments, null);
 
                 for (String str : prints) {
                     SendMessage mess = new SendMessage();
@@ -396,7 +395,7 @@ public class BotHelper implements Runnable {
 
         StatusUser statusUser = new StatusUser();
         statusUser.actions.add(Items.START);
-        history.put(this.chatId,statusUser);
+        history.put(this.chatId, statusUser);
     }
 
     private void forwardPosition() {

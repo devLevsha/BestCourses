@@ -4,25 +4,21 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
 public class PropCheck {
 
+    private static final Logger logger = LogManager.getLogger(Properties.class.getSimpleName());
     public static String BotName;
     public static String BotApiKey;
     public static String ORA_DB_LOGIN;
     public static String ORA_DB_PASS;
     public static String ORA_DB_URL;
-
-    private File configFile;
     private final String propertiesFname;
-
-    private Properties  properties;
-
-    private static final Logger logger = LogManager.getLogger(Properties.class.getSimpleName());
+    private File configFile;
+    private Properties properties;
 
     public PropCheck() {
 
@@ -47,10 +43,8 @@ public class PropCheck {
             this.properties.clear();
             this.properties.load(fr);
 
-        } catch (FileNotFoundException e) {
-            logger.error(e.getMessage(),e.getCause());
         } catch (IOException e) {
-            logger.error(e.getMessage(),e.getCause());
+            logger.error("Error PropCheck " + e.getMessage() + e.getCause());
         }
     }
 }
