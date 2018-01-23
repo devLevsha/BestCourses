@@ -169,6 +169,15 @@ public class UpdateCourses implements Job {
         dep.setLinkToTimes(linkForMoreInformation);
 
         if (!currentAddress.contains(dep.getAddress())) {
+
+            String address = dep.getAddress();
+
+            if (dep.getAddress().contains(nameOfCity)) {
+                dep.setLatlng(Geocoding.getCoordFromAddress(dep.getAddress()).get());
+            } else {
+                dep.setLatlng(Geocoding.getCoordFromAddress(String.format("г. %s %s", nameOfCity, address)).get());
+            }
+
             dep.setLatlng(Geocoding.getCoordFromAddress(dep.getAddress()).get());
         } else {
             dep.setLatlng(new LatLng());
