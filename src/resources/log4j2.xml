@@ -94,8 +94,6 @@
                 </pattern>
             </PatternLayout>
         </File>
-
-
     </Appenders>
 
 
