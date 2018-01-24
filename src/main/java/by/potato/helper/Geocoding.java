@@ -31,7 +31,7 @@ public class Geocoding {
 
         } catch (ApiException | InterruptedException | IOException | ArrayIndexOutOfBoundsException e) {
             logger.error("Not coordinat for this address " + address);
-            return Optional.empty();
+            return Optional.of(new LatLng());
         }
     }
 

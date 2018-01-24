@@ -1,9 +1,6 @@
 package by.potato;
 
-import by.potato.helper.BotHelper;
-import by.potato.helper.PropCheck;
-import by.potato.helper.UpdateCourses;
-import by.potato.helper.UpdateUnusedDepartment;
+import by.potato.helper.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.quartz.*;
@@ -101,7 +98,7 @@ public class BestCoursesBot extends TelegramLongPollingBot {
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity("trigger1", "group1")
-                    .withSchedule(cronSchedule("0 35 0,2,4,6,8,10,12,14,16,18,20,22 * * ?"))
+                    .withSchedule(cronSchedule("0 0 0,2,4,6,8,9,10,12,14,16,18,20,22 * * ?"))
                     .build();
 
             scheduler.scheduleJob(job, trigger);
@@ -136,13 +133,14 @@ public class BestCoursesBot extends TelegramLongPollingBot {
             Scheduler scheduler = sf.getScheduler();
             scheduler.start();
 
-            JobDetail job = newJob(UpdateUnusedDepartment.class)
+            JobDetail job = newJob(UpdateWorkTime.class)
                     .withIdentity("workTime", "groupBot3")
                     .build();
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity("trigger3", "group3")
-                    .withSchedule(cronSchedule("0 0 7 * * ?"))
+                    .withSchedule(cronSchedule("0 44 0,2,4,6,8,9,10,12,14,16,18,20,22 * * ?"))
+                    //.withSchedule(cronSchedule("0 0 7 * * ?"))
                     .build();
 
             scheduler.scheduleJob(job, trigger);

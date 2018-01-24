@@ -247,6 +247,7 @@ public class DataBaseHelper {
                         }
                     }
 
+
                     //section INSERT INTO
                     preparedStatement.setString(1, department.getAddress());
                     preparedStatement.setString(2, entry.getKey());
@@ -291,6 +292,8 @@ public class DataBaseHelper {
             logger.error("updateDepartments error: " + e.getMessage() + e.getCause());
         } catch (JsonProcessingException e) {
             logger.error("POJO to JSON fail " + e.getMessage() + e.getCause());
+        } catch (Exception e) {
+            logger.error("ERRROR " + e.getMessage() + e.getCause() + e.getStackTrace());
         }
     }
 

@@ -161,7 +161,9 @@ public class UpdateCourses implements Job {
 
         String linkForMoreInformation = nameDepWithLink.getElementsByTag("a").first().attr("href");
 
-        dep.setAddress(depaptment.getElementsByClass("address").first().text());
+        String address = depaptment.getElementsByClass("address").first().text();
+        dep.setAddress(improveAddress(address, nameOfCity));
+
         dep.setNameOfDepartment(nameDepartment);
         dep.setTel(depaptment.getElementsByClass("tel").first().text());
         dep.setCurrencies(new ArrayList<>(infoCurrency.values()));
@@ -169,21 +171,34 @@ public class UpdateCourses implements Job {
         dep.setLinkToTimes(linkForMoreInformation);
 
         if (!currentAddress.contains(dep.getAddress())) {
-
-            String address = dep.getAddress();
-
-            if (dep.getAddress().contains(nameOfCity)) {
-                dep.setLatlng(Geocoding.getCoordFromAddress(dep.getAddress()).get());
-            } else {
-                dep.setLatlng(Geocoding.getCoordFromAddress(String.format("г. %s %s", nameOfCity, address)).get());
-            }
-
+            //      dep.setLatlng(new LatLng());
             dep.setLatlng(Geocoding.getCoordFromAddress(dep.getAddress()).get());
         } else {
             dep.setLatlng(new LatLng());
         }
 
         return dep;
+    }
+
+    private String improveAddress(String address, String nameOfCity) {
+
+        int positionNameOfCity = address.indexOf(nameOfCity);
+
+        if (positionNameOfCity == -1) {//в адресе нет названия города
+
+            return String.format("г. %s %s", nameOfCity, address);
+        } else {
+
+            int positionBreacket = address.indexOf("(");
+
+            if ((positionBreacket < positionNameOfCity) && (positionBreacket != -1)) {
+                return String.format("г. %s %s", nameOfCity, address);
+            } else {
+                return address;
+            }
+
+        }
+
     }
 
     //Преобразовать часы работы из строк в объекты и обновить в БД
@@ -242,6 +257,7 @@ public class UpdateCourses implements Job {
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
         ExecutorService es = Executors.newFixedThreadPool(9);
+        //ExecutorService es = Executors.newFixedThreadPool(1);
 
         for (City city : cities) {
             es.submit(() -> getInfoCityBanks(city));

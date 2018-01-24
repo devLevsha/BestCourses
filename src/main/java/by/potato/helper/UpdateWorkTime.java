@@ -15,7 +15,7 @@ import org.quartz.JobExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 
-class UpdateWorkTime implements Job {
+public class UpdateWorkTime implements Job {
 
     private static final Logger logger = LogManager.getLogger(UpdateWorkTime.class.getSimpleName());
 
@@ -30,7 +30,6 @@ class UpdateWorkTime implements Job {
         List<String> linkToWorkTime = DataBaseHelper.getInstance().getLinkWorkTime();
 
         for (String link : linkToWorkTime) {
-
             //получить список строк с временем работы
             List<String> workTimes = getWorkingTime(link);
 
@@ -49,6 +48,7 @@ class UpdateWorkTime implements Job {
 
         DataBaseHelper.getInstance().updateWorkTime(result);
     }
+
 
     //получить часы работы отделения как набор строк
     private List<String> getWorkingTime(String link) {
