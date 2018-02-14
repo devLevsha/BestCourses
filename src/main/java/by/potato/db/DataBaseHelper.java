@@ -164,6 +164,7 @@ public class DataBaseHelper {
             preparedStatement.close();
             resultSet.close();
 
+
         } catch (SQLException e) {
             logger.error("getAddressFromCity error: " + e.getMessage() + e.getCause());
         }

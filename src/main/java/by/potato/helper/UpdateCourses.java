@@ -30,7 +30,7 @@ public class UpdateCourses implements Job {
 
     private static final String targetUrlforCity = "https://myfin.by/currency/vitebsk";
     private static final String templateCity = "https://myfin.by/currency/";
-
+    private static final String templateAccrdional = "?accordion=accordion-";
     private Instant lastUpdate;
 
 
@@ -63,18 +63,17 @@ public class UpdateCourses implements Job {
     //get Name bank with list departments
     private void getInfoCityBanks(City city) {
 
+        logger.info("getInfoCityBanks for city " + city.getRusName());
         Map<String, List<Department>> listBank = new HashMap<>();
 
         List<String> currentAddress = DataBaseHelper.getInstance().getAddressFromCity(city.getRusName());
 
         try {
 
-            //     System.out.println("link " + this.templateCity + city.getEngName());
-
             Document doc = Jsoup.connect(templateCity + city.getEngName()).timeout(180000).get();
 
             Element body = doc.getElementsByTag("body").first();
-            Elements nameOfBanks = body.getElementsByAttributeValueContaining("class", "table-acc_link acc-link_");
+            Elements nameOfBanks = body.getElementsByAttributeValueContaining("class", "tr-tb acc-link_");
 
             nameOfBanks.forEach(m -> {
 
@@ -84,14 +83,29 @@ public class UpdateCourses implements Job {
 
                 listBank.put(nameOfBank, new ArrayList<>());
 
-                String filterForDeparment = "table-acc acc_" + m.attr("data-key");
 
-                Element bank = body.getElementsByAttributeValueContaining("class", filterForDeparment).first();
-                Elements depList = bank.getElementsByClass("currency_row_1");
+                try {
 
+                    String link = templateCity
+                            + city.getEngName()
+                            + templateAccrdional
+                            + m.attr("data-bank_id");
 
-                depList.forEach(j -> listBank.get(nameOfBank).add(getDepartment(j, city.getRusName(), currentAddress)));
+                    Document docWithDepartment = Jsoup.connect(link).timeout(180000).get();
+
+                    String filterForDeparment = "acc_" + m.attr("data-bank_id") + " acc-body";
+
+                    Element bank = docWithDepartment.getElementsByAttributeValueContaining("class", filterForDeparment).first();
+
+                    Elements depList = bank.getElementsByClass("currency_row_1");
+
+                    depList.forEach(j -> listBank.get(nameOfBank).add(getDepartment(j, city.getRusName(), currentAddress)));
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             });
+
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -171,7 +185,6 @@ public class UpdateCourses implements Job {
         dep.setLinkToTimes(linkForMoreInformation);
 
         if (!currentAddress.contains(dep.getAddress())) {
-            //      dep.setLatlng(new LatLng());
             dep.setLatlng(Geocoding.getCoordFromAddress(dep.getAddress()).get());
         } else {
             dep.setLatlng(new LatLng());
@@ -256,7 +269,8 @@ public class UpdateCourses implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
-        ExecutorService es = Executors.newFixedThreadPool(9);
+        //for test count thread 1
+        ExecutorService es = Executors.newFixedThreadPool(1);
         //ExecutorService es = Executors.newFixedThreadPool(1);
 
         for (City city : cities) {
