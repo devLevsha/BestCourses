@@ -38,7 +38,6 @@ public class UpdateCourses implements Job {
 
     public UpdateCourses() {
         this.getNameOfCities();
-        this.lastUpdate = Instant.now();
 
         //for debug
         //cities.add(new City("Несвиж","nesvizh"));
@@ -60,8 +59,10 @@ public class UpdateCourses implements Job {
         }
     }
 
-    //get Name bank with list departments
+    //получить список отделений банка для определённого города
     private void getInfoCityBanks(City city) {
+
+        this.lastUpdate = Instant.now();
 
         logger.info("getInfoCityBanks for city " + city.getRusName());
         Map<String, List<Department>> listBank = new HashMap<>();
@@ -85,7 +86,7 @@ public class UpdateCourses implements Job {
 
 
                 try {
-
+                    //линк на запрос доп. данных под конкретному банку
                     String link = templateCity
                             + city.getEngName()
                             + templateAccrdional
@@ -121,16 +122,40 @@ public class UpdateCourses implements Job {
 
         Map<TypeOfCurrency, Currency> infoCurrency = new ConcurrentHashMap<>();
 
+        //<tr class=" currency_row_1">
+        // <td>
+        //  <div class="ttl">
+        //   <a href="/bank/absolutbank/department/565-minsk-pr-nezavisimosti-95">Головное отделение ЗАО "Абсолютбанк"</a>
+        //  </div>
+        //  <div class="tel">
+        //                +375-17-237-07-02
+        //                </div>
+        //  <div class="address">
+        //                г. Минск, пр. Независимости, 95
+        //                </div>
+        //  <div class="date">
+        //                22:38
+        //                </div> </td>
+        // <td>1.957<i class="conv-btn buy" data-c="usd" data-cf="1"></i></td>
+        // <td>1.963<i class="conv-btn sell" data-c="usd" data-cf="1"></i></td>
+        // <td>2.423<i class="conv-btn buy" data-c="eur" data-cf="1"></i></td>
+        // <td class="best">2.435<i class="conv-btn sell" data-c="eur" data-cf="1"></i></td>
+        // <td>3.455<i class="conv-btn buy" data-c="rub" data-cf="100"></i></td>
+        // <td>3.48<i class="conv-btn sell" data-c="rub" data-cf="100"></i></td>
+        // <td>1.233<i class="conv-btn buy" data-c="eurusd" data-cf="1"></i></td>
+        // <td>1.244<i class="conv-btn sell" data-c="eurusd" data-cf="1"></i></td>
+        //</tr>
         for (Element k : listCurrency) {
 
             try {
 
-                Element element = k.getElementsByTag("span").first();
-                if (element == null) {
+
+                if (k.getElementsByTag("i").size() == 0) {
                     continue;
                 }
 
-                String value = element.text();
+
+                String value = k.text();
 
                 Element elem = k.getElementsByTag("i").first();
 
@@ -142,7 +167,14 @@ public class UpdateCourses implements Job {
                 String typeCurr = elem.attr("data-c");
                 String multiplier = elem.attr("data-cf");
 
-                TypeOfCurrency type = TypeOfCurrency.valueOf(typeCurr.toUpperCase());
+                TypeOfCurrency type;
+                try {
+                    //на вход ожидаем только rub/euro/usb конверсия и т.д. не обрабатываем
+                    type = TypeOfCurrency.valueOf(typeCurr.toUpperCase());
+
+                } catch (IllegalArgumentException e) {
+                    continue;
+                }
 
                 Currency cur;
 
@@ -185,7 +217,16 @@ public class UpdateCourses implements Job {
         dep.setLinkToTimes(linkForMoreInformation);
 
         if (!currentAddress.contains(dep.getAddress())) {
-            dep.setLatlng(Geocoding.getCoordFromAddress(dep.getAddress()).get());
+
+            //attempt maps.yandex.api
+            LatLng latLng = Geocoding.getCoordFromAddressYandex(dep.getAddress()).get();
+
+            //attempt maps.google.api
+            if (latLng.lng == 0 || latLng.lat == 0) {
+                latLng = Geocoding.getCoordFromAddressGoogle(dep.getAddress()).get();
+            }
+
+            dep.setLatlng(latLng);
         } else {
             dep.setLatlng(new LatLng());
         }
@@ -214,63 +255,10 @@ public class UpdateCourses implements Job {
 
     }
 
-    //Преобразовать часы работы из строк в объекты и обновить в БД
-//   private void test() {
-//
-//        List<Triple<String, List<Day>, String>> result = new ArrayList<>();
-//
-//        List<String> linkToWorkTime = DataBaseHelper.getInstance().getLinkWorkTime();
-//
-//
-//
-//        ExecutorService es = Executors.newFixedThreadPool(10);
-//
-//        for (String link : linkToWorkTime) {
-//            es.submit(() -> {
-//
-//                //получить список строк с временем работы
-//                List<String> workTimes = getWorkingTime(link);
-//
-//
-//                List<Day> worksTime = new ArrayList<>();
-//
-//                for (String elem : workTimes) {
-//                    WorkOfWeek.parse(elem, worksTime);
-//                }
-//
-//                if(worksTime.size() != 0) {
-//                    result.add(Triple.of(link,worksTime, String.join("\n", workTimes)));
-//                }
-//            });
-//        }
-//
-//        int before;
-//        int after;
-//        while (linkToWorkTime.size() != result.size() )
-//        try {
-//            before = result.size();
-//            Thread.sleep(10000);
-//            System.err.println( (result.size() * 100) / linkToWorkTime.size() + "%");
-//            //System.err.println(result.size());
-//            after = result.size();
-//
-//            if(before == after) {
-//                break;
-//            }
-//
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//
-//
-//
-//        DataBaseHelper.getInstance().updateWorkTime(result);
-//    }
-
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
         //for test count thread 1
-        ExecutorService es = Executors.newFixedThreadPool(1);
+        ExecutorService es = Executors.newFixedThreadPool(9);
         //ExecutorService es = Executors.newFixedThreadPool(1);
 
         for (City city : cities) {

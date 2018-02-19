@@ -98,7 +98,7 @@ public class BestCoursesBot extends TelegramLongPollingBot {
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity("trigger1", "group1")
-                    .withSchedule(cronSchedule("0 36 0,1,2,4,6,8,9,10,12,14,16,18,20,22,23 * * ?"))
+                    .withSchedule(cronSchedule("0 33 0,1,2,4,6,8,9,10,12,14,16,18,20,22,23 * * ?"))
                     .build();
 
             scheduler.scheduleJob(job, trigger);
@@ -139,7 +139,7 @@ public class BestCoursesBot extends TelegramLongPollingBot {
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity("trigger3", "group3")
-                    .withSchedule(cronSchedule("0 44 0,2,4,6,8,9,10,12,14,16,18,20,22 * * ?"))
+                    .withSchedule(cronSchedule("0 22 0,1,2,4,6,8,9,10,12,14,16,18,20,22,23 * * ?"))
                     //.withSchedule(cronSchedule("0 0 7 * * ?"))
                     .build();
 

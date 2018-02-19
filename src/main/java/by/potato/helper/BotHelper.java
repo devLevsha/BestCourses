@@ -263,7 +263,7 @@ public class BotHelper implements Runnable {
                         switch (history.get(chatId).actions.getLast()) { //последнее действие пользователя
                             case NEAR: //пользователь ввёл свои координаты через стороку
                                 this.action = LOCATION_NEAR;
-                                this.location = Geocoding.getCoordFromAddress(messageInp);
+                                this.location = Geocoding.getCoordFromAddressGoogle(messageInp);
 
                                 if (!this.location.isPresent()) { //не удалось получить координаты из адреса
                                     SendMessage mess = new SendMessage();
@@ -278,7 +278,7 @@ public class BotHelper implements Runnable {
                             case LOCATION_DIST_STEP_TWO:
                             case DISTANCE: //пользователь ввёл свои координаты через стороку
                                 this.action = LOCATION_DIST_STEP_ONE;
-                                this.location = Geocoding.getCoordFromAddress(messageInp);
+                                this.location = Geocoding.getCoordFromAddressGoogle(messageInp);
 
                                 if (!this.location.isPresent()) { //не удалось получить координаты из адреса
                                     SendMessage mess = new SendMessage();

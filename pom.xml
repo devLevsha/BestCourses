@@ -72,6 +72,20 @@
             <version>5.1.6</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.3</version>
+        </dependency>
+
+        <!--local library
+        https://github.com/AndreevDm/yandex-geocoder-client -->
+        <dependency>
+            <groupId>ru.yandex.geocoder</groupId>
+            <artifactId>geocoder-client</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

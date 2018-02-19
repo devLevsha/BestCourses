@@ -5,8 +5,12 @@ import com.google.maps.GeocodingApi;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
 import com.google.maps.model.LatLng;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import ru.yandex.gecoder.client.GeoObject;
+import ru.yandex.gecoder.client.GeocoderResponse;
+import ru.yandex.gecoder.client.YaGeocoder;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -16,9 +20,9 @@ public class Geocoding {
     private static final GeoApiContext contextGoogle = new GeoApiContext.Builder().apiKey("AIzaSyAnSe8k3kMruEIhx8qDO40O2aXLloHwq9s").build();
     private static final Logger logger = LogManager.getLogger(Geocoding.class.getSimpleName());
 
-    public static Optional<LatLng> getCoordFromAddress(String address) {
+    public static Optional<LatLng> getCoordFromAddressGoogle(String address) {
 
-        logger.info("Geocoding address : " + address);
+        logger.info("Google. Geocoding address : " + address);
 
         try {
             GeocodingResult[] coordinates = GeocodingApi.newRequest(contextGoogle)
@@ -30,7 +34,29 @@ public class Geocoding {
             return Optional.of(new LatLng(lat, lng));
 
         } catch (ApiException | InterruptedException | IOException | ArrayIndexOutOfBoundsException e) {
-            logger.error("Not coordinat for this address " + address);
+            logger.error("  Google. Not coordinat for this address " + address);
+            return Optional.of(new LatLng());
+        }
+    }
+
+    public static Optional<LatLng> getCoordFromAddressYandex(String address) {
+
+        logger.info("Yandex. Geocoding address : " + address);
+
+        YaGeocoder geocoder = new YaGeocoder(new DefaultHttpClient());
+
+        try {
+            GeocoderResponse response = geocoder.directGeocode(address);
+
+            GeoObject geoObject = response.getGeoObjects().get(0);//первый результат самый точный
+
+            Double lat = geoObject.getPoint().getLat();
+            Double lng = geoObject.getPoint().getLon();
+
+            return Optional.of(new LatLng(lat, lng));
+
+        } catch (IOException | IndexOutOfBoundsException e) {
+            logger.error("Yandex. Not coordinat for this address " + address);
             return Optional.of(new LatLng());
         }
     }

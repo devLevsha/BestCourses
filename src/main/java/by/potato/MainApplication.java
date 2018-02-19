@@ -1,6 +1,8 @@
 package by.potato;
 
+import by.potato.helper.Geocoding;
 import by.potato.helper.PropCheck;
+import com.google.maps.model.LatLng;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -19,6 +21,10 @@ class MainApplication {
     }
 
     public static void main(String[] args) {
+
+
+        LatLng latLng = Geocoding.getCoordFromAddressYandex("г. Гродно, ул. Большая Троицкая, д.17, пом.3").get();
+
 
         System.out.println(MainApplication.class.getSimpleName());
 
