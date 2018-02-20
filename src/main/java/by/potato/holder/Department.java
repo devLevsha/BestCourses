@@ -49,6 +49,9 @@ public class Department {
 	private String linkToTimes;
 	@JsonIgnore
 	private String additionalInfo;
+	@JsonIgnore
+	private String workTimeOriginal;
+
 	@JsonValue
 	private List<Day> worksTime = new ArrayList<>();
 
@@ -67,7 +70,11 @@ public class Department {
 		this.worksTime = builder.worksTime;
 		this.linkToTimes = builder.linkToTimes;
 		this.additionalInfo = builder.additionalInfo;
+		this.tel = builder.tel;
+		this.workTimeOriginal = builder.workTimeOriginal;
 	}
+
+
 
 	public String getLinkToTimes() {
 		return linkToTimes;
@@ -119,6 +126,14 @@ public class Department {
 
 	public void setTel(String tel) {
 		this.tel = tel;
+	}
+
+	public String getWorkTimeOriginal() {
+		return workTimeOriginal;
+	}
+
+	public void setWorkTimeOriginal(String workTimeOriginal) {
+		this.workTimeOriginal = workTimeOriginal;
 	}
 
 	public String getNameOfDepartment() {
@@ -257,11 +272,6 @@ public class Department {
 		return new Breaks(localTime, day.getEnd());
 	}
 
-	//сделать доп поле в БД
-	public String getWorkTimeOriginal() {
-		//return this.workTimeOriginal; TODO
-		return null;
-	}
 
 
     @Override
@@ -309,7 +319,8 @@ public class Department {
 		private List<Day> worksTime;
 		private String linkToTimes;
 		private String additionalInfo;
-
+		private String tel;
+		private String workTimeOriginal;
 
 		public Builder setBankName(String bankName) {
 			this.bankName = bankName;
@@ -358,6 +369,16 @@ public class Department {
 
 		public Builder setAdditionalInfo(String additionalInfo) {
 			this.additionalInfo = additionalInfo;
+			return this;
+		}
+
+		public Builder setTel(String tel) {
+			this.tel = tel;
+			return this;
+		}
+
+		public Builder setWorkTimeOriginal(String workTimeOriginal) {
+			this.workTimeOriginal = workTimeOriginal;
 			return this;
 		}
 

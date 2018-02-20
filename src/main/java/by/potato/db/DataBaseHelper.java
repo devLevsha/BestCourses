@@ -580,7 +580,9 @@ public class DataBaseHelper {
                 "dep.rub_multiplier," +
                 "dep.doll_buy," +
                 "dep.doll_sell," +
-                "dep.doll_multiplier" +
+                "dep.doll_multiplier," +
+                "dep.phone," +
+                "dep.workTimesOriginal" +
                 " FROM Departments as dep, Cities as c  WHERE c.name = ? and c.id = dep.id_cities and bank_name = ?";
 
         try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
@@ -609,6 +611,9 @@ public class DataBaseHelper {
                 usd.setValueSell(resultSet.getDouble(9));
                 usd.setMultiplier(resultSet.getInt(10));
 
+                String tel = resultSet.getString(11);
+                String workTimeOriginal = resultSet.getString(12);
+
                 Department department =
                         new Department.Builder()
                                 .setBankName(bankName)
@@ -617,6 +622,8 @@ public class DataBaseHelper {
                                 .setRub(rub)
                                 .setUsd(usd)
                                 .setCityName(city)
+                                .setTel(tel)
+                                .setWorkTimeOriginal(workTimeOriginal)
                                 .build();
 
                 result.add(department);
