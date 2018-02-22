@@ -17,6 +17,9 @@ public class PropCheck {
     public static String ORA_DB_LOGIN;
     public static String ORA_DB_PASS;
     public static String ORA_DB_URL;
+    public static String UPDATE_COURSES_SCHEDULE;
+    public static String UPDATE_UNUSED_DEPARTMENT;
+    public static String UPDATE_WORK_TIME;
 
     private String propertiesFname;
     private File configFile;
@@ -35,7 +38,9 @@ public class PropCheck {
         ORA_DB_LOGIN = this.properties.getProperty("db_login");
         ORA_DB_PASS = this.properties.getProperty("db_pass");
         ORA_DB_URL = this.properties.getProperty("db_url");
-
+        UPDATE_COURSES_SCHEDULE = this.properties.getProperty("update_courses");
+        UPDATE_UNUSED_DEPARTMENT = this.properties.getProperty("update_unused_department");
+        UPDATE_WORK_TIME = this.properties.getProperty("update_work_time");
     }
 
     private void readProps() {

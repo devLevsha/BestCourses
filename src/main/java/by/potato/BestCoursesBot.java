@@ -15,8 +15,7 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 import java.util.Queue;
 import java.util.concurrent.*;
 
-import static by.potato.helper.PropCheck.BotApiKey;
-import static by.potato.helper.PropCheck.BotName;
+import static by.potato.helper.PropCheck.*;
 import static org.quartz.CronScheduleBuilder.cronSchedule;
 import static org.quartz.JobBuilder.newJob;
 
@@ -98,7 +97,7 @@ public class BestCoursesBot extends TelegramLongPollingBot {
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity("trigger1", "group1")
-                    .withSchedule(cronSchedule("0 55 0,1,2,4,6,8,9,10,12,14,16,18,20,22,23 * * ?"))
+                    .withSchedule(cronSchedule(UPDATE_COURSES_SCHEDULE))
                     .build();
 
             scheduler.scheduleJob(job, trigger);
@@ -119,7 +118,7 @@ public class BestCoursesBot extends TelegramLongPollingBot {
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity("trigger2", "group2")
-                    .withSchedule(cronSchedule("0 15 0 * * ?"))
+                    .withSchedule(cronSchedule(UPDATE_UNUSED_DEPARTMENT))
                     .build();
 
             scheduler.scheduleJob(job, trigger);
@@ -139,8 +138,7 @@ public class BestCoursesBot extends TelegramLongPollingBot {
 
             CronTrigger trigger = TriggerBuilder.newTrigger()
                     .withIdentity("trigger3", "group3")
-                    .withSchedule(cronSchedule("0 14 0,1,2,4,6,8,9,10,12,14,16,18,20,22 * * ?"))
-                    //.withSchedule(cronSchedule("0 0 7 * * ?"))
+                    .withSchedule(cronSchedule(UPDATE_WORK_TIME))
                     .build();
 
             scheduler.scheduleJob(job, trigger);

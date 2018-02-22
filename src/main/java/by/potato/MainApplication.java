@@ -1,9 +1,7 @@
 package by.potato;
 
-import by.potato.helper.Geocoding;
-import by.potato.helper.PropCheck;
-import com.google.maps.model.LatLng;
-
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -23,14 +21,23 @@ class MainApplication {
     public static void main(String[] args) {
 
 
-        LatLng latLng = Geocoding.getCoordFromAddressYandex("г. Гродно, ул. Большая Троицкая, д.17, пом.3").get();
+        LocalDateTime timeMinus = LocalDateTime.now().minus(10, ChronoUnit.MINUTES);
 
+        LocalDateTime timeNOow = LocalDateTime.now().minus(222, ChronoUnit.MINUTES);
 
-        System.out.println(MainApplication.class.getSimpleName());
+        if (timeMinus.compareTo(timeNOow) > 0) {
+            System.out.println("sdfsdfsdfsdf");
+        }
 
-        PropCheck propCheck = new PropCheck();
-
-        initFunction();
+//
+//        LatLng latLng = Geocoding.getCoordFromAddressYandex("г. Гродно, ул. Большая Троицкая, д.17, пом.3").get();
+//
+//
+//        System.out.println(MainApplication.class.getSimpleName());
+//
+//        PropCheck propCheck = new PropCheck();
+//
+//        initFunction();
 
 //        List<Day> test = new ArrayList<>();
 //

@@ -52,6 +52,21 @@ public class StringHelper {
         return courses(list, Info.NEAR, localDateTime, false);
     }
 
+    public static List<String> getBestCoursesByCityNext(List<String> list) {
+
+        List<String> elements;
+        try {
+            elements = list.subList(STEP_INIT_POSITION, STEP_FOR_INFO);
+        } catch (IndexOutOfBoundsException e) {
+            //если элементов меньше 5
+            elements = list.subList(STEP_INIT_POSITION, list.size());
+        }
+
+        List<String> result = new ArrayList<String>(elements);
+        elements.clear();
+
+        return result;
+    }
 
     private static List<String> courses(List<Department> list, Info info, LocalDateTime localDateTime, Boolean onlyBestCourses) {
 

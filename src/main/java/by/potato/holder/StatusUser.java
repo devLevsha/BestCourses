@@ -17,10 +17,9 @@ public class StatusUser {
     public String city;
     public List<Department> departments;
     public LocalDateTime localDateTime;
+    public List<String> messagesDepartments;
 
     public StatusUser() {
-
         actions = new ArrayDeque<>();
-
     }
 }

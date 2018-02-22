@@ -170,11 +170,61 @@ public class KeyboardMarkUp {
         return keyboardMarkup;
     }
 
+    public static ReplyKeyboardMarkup getSearchCities() {
+
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setResizeKeyboard(true);
+
+
+        KeyboardRow rowOne = new KeyboardRow();
+        rowOne.add("Минск");
+        rowOne.add("Гродно");
+        rowOne.add("Витебск");
+
+        KeyboardRow rowTwo = new KeyboardRow();
+        rowTwo.add("Брест");
+        rowTwo.add("Гомель");
+        rowTwo.add("Могилев");
+
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        keyboard.add(rowOne);
+        keyboard.add(rowTwo);
+        keyboard.add(getBackButton());
+
+        keyboardMarkup.setKeyboard(keyboard);
+
+
+        return keyboardMarkup;
+    }
+
+    public static ReplyKeyboardMarkup getDepNext() {
+
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setResizeKeyboard(true);
+
+        String textOnButton;
+        KeyboardRow rowOne = new KeyboardRow();
+        textOnButton = EmojiParser.parseToUnicode("Следующие отделения :arrow_right:");
+        KeyboardButton next = new KeyboardButton();
+        next.setText(textOnButton);
+        rowOne.add(next);
+
+
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        keyboard.add(rowOne);
+        keyboard.add(getBackButton());
+
+
+        keyboardMarkup.setKeyboard(keyboard);
+
+        return keyboardMarkup;
+    }
 
     public static ReplyKeyboardMarkup getBackKeyboard() {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
-
 
         List<KeyboardRow> keyboard = new ArrayList<>();
 
@@ -216,7 +266,6 @@ public class KeyboardMarkUp {
 
         rowOne.add(EmojiParser.parseToUnicode("Главное меню :arrows_counterclockwise:"));
         rowOne.add(EmojiParser.parseToUnicode("назад :back:"));
-
 
         return rowOne;
     }

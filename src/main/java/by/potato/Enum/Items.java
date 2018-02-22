@@ -13,6 +13,7 @@ public enum Items {
     UNKNOW("Проблема сэр"),
     LOCATION_NEAR("Координаты"),
     NEXT("Следующие"),
+    NEXT_DEP("Следующие отделения"),
     LOCATION_DIST_STEP_ONE("Координаты"),
     LOCATION_DIST_STEP_TWO("Радиус"),
     BEST_COURSES("Лучшие курсы"),
