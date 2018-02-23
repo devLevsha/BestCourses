@@ -1,5 +1,5 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
+SET time_zone = "+03:00";
 
 --
 -- База данных: `BestCourses`
@@ -88,7 +88,6 @@ ALTER TABLE `Questions`
   -- Процедуры
   --
   CREATE DEFINER=`root`@`localhost` PROCEDURE `geoDepartment` (IN `mylat` DOUBLE, IN `mylon` DOUBLE)  BEGIN
-
   select
   	dest.bank_name,
   	dest.address,
@@ -111,7 +110,6 @@ ALTER TABLE `Questions`
   			))
   	as distance from Departments dest, Cities city WHERE dest.id_cities = city.id
   	ORDER BY distance;
-
   END$$
 
   CREATE DEFINER=`root`@`localhost` PROCEDURE `geoDepartmentDist` (IN `mylat` DOUBLE, IN `mylon` DOUBLE, IN `dist` INT)  BEGIN

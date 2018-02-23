@@ -2,7 +2,7 @@
 <Configuration monitorInterval="60">
     <Properties>
         <Property name="log-path">logs</Property>
-        <Property name="archive">${log-path}/archive</Property>
+        <Property name="archive">${log-path}//archive</Property>
     </Properties>
 
     <Appenders>

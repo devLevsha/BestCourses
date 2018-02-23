@@ -52,6 +52,7 @@ public class BotHelper implements Runnable {
                 StatusUser statusUser = history.get(key);
 
                 if (statusUser.localDateTime.compareTo(timeMinus) > 0) {
+                    logger.info(String.format("Clean history for charId %d", key));
                     iterator.remove();
                 }
             }
