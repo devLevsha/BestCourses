@@ -234,6 +234,10 @@ public class Department {
 						Breaks timeToEndBreakMin = this.timeToEndBreak(localTime, day.getBreaks());
 						if (timeToEndBreakMin != null) {
 							return String.format(templateEndBreak, humanReadableFormatFromDuration(localTime, timeToEndBreakMin.end), timeToEndBreakMin.end);
+						} else { //перерыв прошёл время до конца
+							//время до конца рабочего дня
+							Breaks timeToEndWork = this.timeToEndWork(day, localTime);
+							return String.format(templateEndWork, humanReadableFormatFromDuration(localTime, timeToEndWork.end), timeToEndWork.end);
 						}
 					}
 
@@ -246,7 +250,6 @@ public class Department {
 		}
 		return null;
 	}
-
 
 	private Breaks timeToBeginBreak(LocalTime localTime, List<Breaks> breaks) {
 
