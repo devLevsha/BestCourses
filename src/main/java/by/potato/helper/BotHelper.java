@@ -187,7 +187,7 @@ public class BotHelper implements Runnable {
                         forwardPosition();
                         sendMessage(mes);
 
-                        messageOut = "Выберите интересущий банк и нажмите на него";
+                        messageOut = "Выберите из списка интересующий Вас банк";
                         message.setText(messageOut);
                         message.setReplyMarkup(KeyboardMarkUp.getBackKeyboard());
                         forwardPosition();
@@ -196,7 +196,7 @@ public class BotHelper implements Runnable {
                         break;
 
                     case NEAR_EXCHANGE:
-                        messageOut = "Ближайшие - список ближайших работающих обменных пункта\nРасстояние - список работающих обменных пунктов в пределах Х км";
+                        messageOut = "Ближайшие - список ближайших работающих обменных пунктов\nПо заданному расстоянию - список работающих обменных пунктов в указанном радиусе";
                         message.setText(messageOut);
                         message.setReplyMarkup(KeyboardMarkUp.getNearKeyboard());
                         forwardPosition();
@@ -206,7 +206,7 @@ public class BotHelper implements Runnable {
 
                     case DISTANCE:
                     case NEAR:
-                        messageOut = "Введите свой адрес или поделитесь координами";
+                        messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
                         message.setText(messageOut);
                         message.setReplyMarkup(KeyboardMarkUp.getDistNearKeyboard());
                         forwardPosition();
@@ -228,7 +228,7 @@ public class BotHelper implements Runnable {
                             sendMessage(mess);
                         }
 
-                        messageOut = "Введите свой адрес или поделитесь координами";
+                        messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
                         message.setText(messageOut);
                         message.setReplyMarkup(KeyboardMarkUp.getDistNearNextKeyboard());
                         sendMessage(message);
@@ -260,7 +260,7 @@ public class BotHelper implements Runnable {
                             sendMessage(mess);
                         }
 
-                        messageOut = "Введите свой адрес или поделитесь координами";
+                        messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
                         message.setText(messageOut);
                         message.setReplyMarkup(KeyboardMarkUp.getDistNearKeyboard());
                         forwardPosition();
@@ -269,8 +269,7 @@ public class BotHelper implements Runnable {
 
 
                     case INFO:
-                        messageOut = "Данные любезно предоставлены <a href=\"http://www.myfin.by/\">MyFin</a>" +
-                                "\nОбновление в 15 минут 8,9,10,14 :alarm_clock:";
+                        messageOut = "Данные любезно предоставлены <a href=\"http://www.myfin.by/\">MyFin</a>";
                         message.setText(EmojiParser.parseToUnicode(messageOut));
                         message.setReplyMarkup(KeyboardMarkUp.getBackKeyboard());
                         forwardPosition();

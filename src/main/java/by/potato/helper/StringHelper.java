@@ -115,7 +115,7 @@ public class StringHelper {
         list.clear();
 
         if (strings.size() == 0) { //нет результатов удовлетворяющих условия
-            String str = "По вашему запроси ничего не найдено :confused:";
+            String str = "По вашему запросу ничего не найдено :confused:";
             strings.add(EmojiParser.parseToUnicode(str));
         }
 
