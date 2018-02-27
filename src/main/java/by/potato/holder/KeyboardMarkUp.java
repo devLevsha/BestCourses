@@ -1,5 +1,6 @@
 package by.potato.holder;
 
+import com.google.maps.model.LatLng;
 import com.vdurmont.emoji.EmojiParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +16,7 @@ import java.util.List;
 public class KeyboardMarkUp {
 
     private static final Logger logger = LogManager.getLogger(KeyboardMarkUp.class.getSimpleName());
+    private static final String templateLocation = "http://www.maps.yandex.ru/?text=%f,%f";
 
     public static ReplyKeyboardMarkup getStartMenu() {
 
@@ -32,6 +34,10 @@ public class KeyboardMarkUp {
         textOnButton = EmojiParser.parseToUnicode("Обменные пункты :us::euro::ru:");
         rowTwo.add(textOnButton);
 
+        KeyboardRow rowSix = new KeyboardRow();
+        textOnButton = EmojiParser.parseToUnicode("Настройки ⚙");
+        rowSix.add(textOnButton);
+
         KeyboardRow rowThree = new KeyboardRow();
         textOnButton = EmojiParser.parseToUnicode("Информация :information_source:");
         rowThree.add(textOnButton);
@@ -43,6 +49,7 @@ public class KeyboardMarkUp {
 
         keyboard.add(rowOne);
         keyboard.add(rowTwo);
+        keyboard.add(rowSix);
         keyboard.add(rowThree);
 
         keyboardMarkup.setKeyboard(keyboard);
@@ -240,6 +247,22 @@ public class KeyboardMarkUp {
         keyboardMarkup.setOneTimeKeyboard(true);
 
         return keyboardMarkup;
+    }
+
+    public static InlineKeyboardMarkup getLocationButton(LatLng location) {
+
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+        rowInline.add(new InlineKeyboardButton().setText("На карте").setUrl(String.format(templateLocation, location.lat, location.lng)));
+
+        rowsInline.add(rowInline);
+
+        markupInline.setKeyboard(rowsInline);
+
+        return markupInline;
     }
 
     public static InlineKeyboardMarkup getBanks(List<String> banks) {

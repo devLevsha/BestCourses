@@ -7,6 +7,7 @@ import by.potato.holder.KeyboardMarkUp;
 import by.potato.holder.StatusUser;
 import com.google.maps.model.LatLng;
 import com.vdurmont.emoji.EmojiParser;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -139,6 +140,15 @@ public class BotHelper implements Runnable {
                         sendMessage(message);
                         break;
 
+                    case SETTINGS:
+                        messageOut = "Данный функционал находится в разработке.";
+                        message.setText(messageOut);
+                        message.setReplyMarkup(KeyboardMarkUp.getStartMenu());
+                        inithPosition();
+                        sendMessage(message);
+                        break;
+
+
                     case COURSES_CITY:
                         messageOut = "Введите название города (Пинск, Речица и т.д.)";
                         message.setText(messageOut);
@@ -157,17 +167,27 @@ public class BotHelper implements Runnable {
 
                     case BEST_COURSES:
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
-                        history.get(this.chatId).messagesDepartments = StringHelper.getBestCoursesByCity(DataBaseHelper.getInstance().getCoursesByCity(history.get(this.chatId).city), null);
+                        history.get(this.chatId).messagesAndLocation = StringHelper.getBestCoursesByCity(DataBaseHelper.getInstance().getCoursesByCity(history.get(this.chatId).city), null);
 
                     case NEXT_DEP:
 
-                        List<String> messageDep = StringHelper.getBestCoursesByCityNext(history.get(this.chatId).messagesDepartments);
+                    {
+                        Pair<List<String>, List<LatLng>> messagesAndLocation = StringHelper.getBestCoursesByCityNext(history.get(this.chatId).messagesAndLocation);
 
-                        for (String str : messageDep) {
+                        List<String> messages = messagesAndLocation.getLeft();
+                        List<LatLng> latLngs = messagesAndLocation.getRight();
+
+                        for (int i = 0; i < messages.size(); i++) {
                             SendMessage mess = new SendMessage();
-                            mess.setText(str);
+                            mess.setText(messages.get(i));
                             mess.setChatId(this.chatId);
+                            try {
+                                mess.setReplyMarkup(KeyboardMarkUp.getLocationButton(latLngs.get(i)));
+                            } catch (IndexOutOfBoundsException e) {
+                                logger.error(e.getMessage());
+                            }
                             sendMessage(mess);
+                        }
                         }
 
                         messageOut = "Список лучший курсов";
@@ -218,16 +238,24 @@ public class BotHelper implements Runnable {
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
                         history.get(this.chatId).departments = DataBaseHelper.getInstance().geoDepartment(this.location, history.get(this.chatId).localDateTime);
 
-                    case NEXT:
-                        List<String> messagesNear = StringHelper.getPrintNearDepartment(history.get(this.chatId).departments, history.get(this.chatId).localDateTime);
+                    case NEXT: {
+                        Pair<List<String>, List<LatLng>> messagesAndLocation = StringHelper.getPrintNearDepartment(history.get(this.chatId).departments, history.get(this.chatId).localDateTime);
 
-                        for (String str : messagesNear) {
+                        List<String> messages = messagesAndLocation.getLeft();
+                        List<LatLng> latLngs = messagesAndLocation.getRight();
+
+                        for (int i = 0; i < messages.size(); i++) {
                             SendMessage mess = new SendMessage();
-                            mess.setText(str);
+                            mess.setText(messages.get(i));
                             mess.setChatId(this.chatId);
+                            try {
+                                mess.setReplyMarkup(KeyboardMarkUp.getLocationButton(latLngs.get(i)));
+                            } catch (IndexOutOfBoundsException e) {
+                                logger.error(e.getMessage());
+                            }
                             sendMessage(mess);
                         }
-
+                    }
                         messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
                         message.setText(messageOut);
                         message.setReplyMarkup(KeyboardMarkUp.getDistNearNextKeyboard());
@@ -250,15 +278,25 @@ public class BotHelper implements Runnable {
                     case LOCATION_DIST_STEP_TWO:
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
                         List<Department> departmentsDist = DataBaseHelper.getInstance().geoDepartmentDist(history.get(this.chatId).location, history.get(this.chatId).distance);
-                        List<String> messagesDist = StringHelper.getPrintNearDepartment(departmentsDist, history.get(this.chatId).localDateTime);
 
+                    {
+                        Pair<List<String>, List<LatLng>> messagesAndLocation = StringHelper.getPrintNearDepartment(departmentsDist, history.get(this.chatId).localDateTime);
 
-                        for (String str : messagesDist) {
+                        List<String> messages = messagesAndLocation.getLeft();
+                        List<LatLng> latLngs = messagesAndLocation.getRight();
+
+                        for (int i = 0; i < messages.size(); i++) {
                             SendMessage mess = new SendMessage();
-                            mess.setText(str);
+                            mess.setText(messages.get(i));
                             mess.setChatId(this.chatId);
+                            try {
+                                mess.setReplyMarkup(KeyboardMarkUp.getLocationButton(latLngs.get(i)));
+                            } catch (IndexOutOfBoundsException e) {
+                                logger.error(e.getMessage());
+                            }
                             sendMessage(mess);
                         }
+                    }
 
                         messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
                         message.setText(messageOut);
@@ -267,9 +305,8 @@ public class BotHelper implements Runnable {
                         sendMessage(message);
                         break;
 
-
                     case INFO:
-                        messageOut = "Данные любезно предоставлены <a href=\"http://www.myfin.by/\">MyFin</a>";
+                        messageOut = "Данные предоставлены сайтом <a href=\"http://www.myfin.by/\">www.MyFin.by</a>. Актуальная информация о банках, вкладах, курсах и кредитах в РБ.";
                         message.setText(EmojiParser.parseToUnicode(messageOut));
                         message.setReplyMarkup(KeyboardMarkUp.getBackKeyboard());
                         forwardPosition();
@@ -296,7 +333,8 @@ public class BotHelper implements Runnable {
                                 this.action = LOCATION_NEAR;
                                 this.location = Geocoding.getCoordFromAddressGoogle(messageInp);
 
-                                if (!this.location.isPresent()) { //не удалось получить координаты из адреса
+                                if (this.location.get().lng == 0 && this.location.get().lat == 0) {
+                                    //не удалось получить координаты из адреса
                                     SendMessage mess = new SendMessage();
                                     String str = "К сожалению введённый адрес не корректен :confused:\nПовторите ввод";
                                     mess.setText(EmojiParser.parseToUnicode(str));
@@ -311,7 +349,7 @@ public class BotHelper implements Runnable {
                                 this.action = LOCATION_DIST_STEP_ONE;
                                 this.location = Geocoding.getCoordFromAddressGoogle(messageInp);
 
-                                if (!this.location.isPresent()) { //не удалось получить координаты из адреса
+                                if (this.location.get().lng == 0 && this.location.get().lat == 0) {//не удалось получить координаты из адреса
                                     SendMessage mess = new SendMessage();
                                     String str = "К сожалению был введённый некорректный адрес :confused:\nПовторите ввод";
                                     mess.setText(EmojiParser.parseToUnicode(str));
@@ -377,7 +415,7 @@ public class BotHelper implements Runnable {
 
                             default:
                                 SendMessage mess = new SendMessage();
-                                String str = "Команда не распознана ";
+                                String str = "Команда не распознана";
                                 mess.setText(str);
                                 mess.setChatId(this.chatId);
                                 sendMessage(mess);
@@ -402,12 +440,20 @@ public class BotHelper implements Runnable {
         switch (this.action) {
             case BANK:
                 List<Department> departments = DataBaseHelper.getInstance().getDepartmentByBankAndCity(history.get(this.chatId).city, messageInp);
-                List<String> prints = StringHelper.getBestCoursesByCity(departments, null);
+                Pair<List<String>, List<LatLng>> messagesAndLocation = StringHelper.getBestCoursesByCity(departments, null);
 
-                for (String str : prints) {
+                List<String> messages = messagesAndLocation.getLeft();
+                List<LatLng> latLngs = messagesAndLocation.getRight();
+
+                for (int i = 0; i < messages.size(); i++) {
                     SendMessage mess = new SendMessage();
-                    mess.setText(str);
+                    mess.setText(messages.get(i));
                     mess.setChatId(this.chatId);
+                    try {
+                        mess.setReplyMarkup(KeyboardMarkUp.getLocationButton(latLngs.get(i)));
+                    } catch (IndexOutOfBoundsException e) {
+                        logger.error(e.getMessage());
+                    }
                     sendMessage(mess);
                 }
 

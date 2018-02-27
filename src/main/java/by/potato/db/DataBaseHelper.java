@@ -263,8 +263,8 @@ public class DataBaseHelper {
                     preparedStatement.setDouble(10, rub.getValueBuy());
                     preparedStatement.setDouble(11, rub.getValueSell());
                     preparedStatement.setDouble(12, rub.getMultiplier());
-                    preparedStatement.setDouble(13, department.getLatlng().lat);
-                    preparedStatement.setDouble(14, department.getLatlng().lng);
+                    preparedStatement.setDouble(13, department.getLocation().lat);
+                    preparedStatement.setDouble(14, department.getLocation().lng);
                     preparedStatement.setString(15, jsonInString);
                     preparedStatement.setString(16, department.getLinkToTimes());
                     preparedStatement.setString(17, department.getTel());
@@ -352,8 +352,12 @@ public class DataBaseHelper {
 
                 String worksTimeStr = resultSet.getString(12);
 
-                String cityName = resultSet.getString(13);
-                Double dist = resultSet.getDouble(14);
+                LatLng latLng = new LatLng();
+                latLng.lat = resultSet.getDouble(13);
+                latLng.lng = resultSet.getDouble(14);
+
+                String cityName = resultSet.getString(15);
+                Double dist = resultSet.getDouble(16);
 
 
                 //TODO разобраться почему в БД есть нераспаршенное время
@@ -374,6 +378,7 @@ public class DataBaseHelper {
                                 .setCityName(cityName)
                                 .setDist(dist)
                                 .setWorksTime(workTime)
+                                .setLocation(latLng)
                                 .build();
 
                 if (department.isWork(dayOfWeek, localTime)) {
@@ -435,8 +440,12 @@ public class DataBaseHelper {
                         new TypeReference<List<Day>>() {
                         });
 
-                String cityName = resultSet.getString(13);
-                Double dist = resultSet.getDouble(14);
+                LatLng latLng = new LatLng();
+                latLng.lat = resultSet.getDouble(13);
+                latLng.lng = resultSet.getDouble(14);
+
+                String cityName = resultSet.getString(15);
+                Double dist = resultSet.getDouble(16);
 
                 Department department = new Department.Builder()
                         .setBankName(bankName)
@@ -447,6 +456,7 @@ public class DataBaseHelper {
                         .setCityName(cityName)
                         .setDist(dist)
                         .setWorksTime(workTime)
+                        .setLocation(latLng)
                         .build();
 
                 if (department.isWork(dayOfWeek, localTime)) {
@@ -481,7 +491,9 @@ public class DataBaseHelper {
                 "dep.doll_sell," +
                 "dep.doll_multiplier," +
                 "dep.phone," +
-                "dep.workTimesOriginal" +
+                "dep.workTimesOriginal," +
+                "dep.lat," +
+                "dep.lng" +
                 " FROM Departments as dep, Cities as c  WHERE c.name = ? and c.id = dep.id_cities";
 
         try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
@@ -513,6 +525,11 @@ public class DataBaseHelper {
                 String tel = resultSet.getString(12);
                 String workTimeOriginal = resultSet.getString(13);
 
+                LatLng latLng = new LatLng();
+                latLng.lat = resultSet.getDouble(14);
+                latLng.lng = resultSet.getDouble(15);
+
+
                 Department department =
                         new Department.Builder()
                                 .setBankName(bankName)
@@ -523,6 +540,7 @@ public class DataBaseHelper {
                                 .setCityName(city)
                                 .setTel(tel)
                                 .setWorkTimeOriginal(workTimeOriginal)
+                                .setLocation(latLng)
                                 .build();
 
                 result.add(department);
@@ -589,7 +607,9 @@ public class DataBaseHelper {
                 "dep.doll_sell," +
                 "dep.doll_multiplier," +
                 "dep.phone," +
-                "dep.workTimesOriginal" +
+                "dep.workTimesOriginal," +
+                "dep.lat," +
+                "dep.lng " +
                 " FROM Departments as dep, Cities as c  WHERE c.name = ? and c.id = dep.id_cities and bank_name = ?";
 
         try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
@@ -621,6 +641,10 @@ public class DataBaseHelper {
                 String tel = resultSet.getString(11);
                 String workTimeOriginal = resultSet.getString(12);
 
+                LatLng latLng = new LatLng();
+                latLng.lat = resultSet.getDouble(13);
+                latLng.lng = resultSet.getDouble(14);
+
                 Department department =
                         new Department.Builder()
                                 .setBankName(bankName)
@@ -631,6 +655,7 @@ public class DataBaseHelper {
                                 .setCityName(city)
                                 .setTel(tel)
                                 .setWorkTimeOriginal(workTimeOriginal)
+                                .setLocation(latLng)
                                 .build();
 
                 result.add(department);

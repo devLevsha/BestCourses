@@ -222,13 +222,13 @@ public class UpdateCourses implements Job {
             LatLng latLng = Geocoding.getCoordFromAddressYandex(dep.getAddress()).get();
 
             //attempt maps.google.api
-            if (latLng.lng == 0 || latLng.lat == 0) {
+            if (latLng.lng == 0 && latLng.lat == 0) {
                 latLng = Geocoding.getCoordFromAddressGoogle(dep.getAddress()).get();
             }
 
-            dep.setLatlng(latLng);
+            dep.setLocation(latLng);
         } else {
-            dep.setLatlng(new LatLng());
+            dep.setLocation(new LatLng());
         }
 
         return dep;

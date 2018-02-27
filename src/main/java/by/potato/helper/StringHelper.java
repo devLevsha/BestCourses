@@ -4,7 +4,9 @@ import by.potato.Enum.Info;
 import by.potato.Enum.TypeOfCurrency;
 import by.potato.Pairs.MinMax;
 import by.potato.holder.Department;
+import com.google.maps.model.LatLng;
 import com.vdurmont.emoji.EmojiParser;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.api.objects.Message;
@@ -31,7 +33,7 @@ public class StringHelper {
     private static final int STEP_FOR_INFO = 5;
     private static final int STEP_INIT_POSITION = 0;
 
-    public static List<String> getPrintNearDepartment(List<Department> list, LocalDateTime localDateTime) {
+    public static Pair<List<String>, List<LatLng>> getPrintNearDepartment(List<Department> list, LocalDateTime localDateTime) {
 
         List<Department> result;
         try {
@@ -41,37 +43,46 @@ public class StringHelper {
             result = list.subList(STEP_INIT_POSITION, list.size());
         }
 
+
         return courses(result, Info.NEAR, localDateTime, false);
     }
 
-    public static List<String> getBestCoursesByCity(List<Department> list, LocalDateTime localDateTime) {
+    public static Pair<List<String>, List<LatLng>> getBestCoursesByCity(List<Department> list, LocalDateTime localDateTime) {
         return courses(list, Info.INFO, localDateTime, true);
     }
 
-    public static List<String> getPrintNearDistDepartment(List<Department> list, LocalDateTime localDateTime) {
+    public static Pair<List<String>, List<LatLng>> getPrintNearDistDepartment(List<Department> list, LocalDateTime localDateTime) {
         return courses(list, Info.NEAR, localDateTime, false);
     }
 
-    public static List<String> getBestCoursesByCityNext(List<String> list) {
+    public static Pair<List<String>, List<LatLng>> getBestCoursesByCityNext(Pair<List<String>, List<LatLng>> list) {
 
         List<String> elements;
+        List<LatLng> locations;
         try {
-            elements = list.subList(STEP_INIT_POSITION, STEP_FOR_INFO);
+            elements = list.getLeft().subList(STEP_INIT_POSITION, STEP_FOR_INFO);
+            locations = list.getRight().subList(STEP_INIT_POSITION, STEP_FOR_INFO);
         } catch (IndexOutOfBoundsException e) {
             //если элементов меньше 5
-            elements = list.subList(STEP_INIT_POSITION, list.size());
+            elements = list.getLeft().subList(STEP_INIT_POSITION, list.getLeft().size());
+            locations = list.getRight().subList(STEP_INIT_POSITION, list.getRight().size());
         }
 
         List<String> result = new ArrayList<String>(elements);
-        elements.clear();
+        List<LatLng> resultLocation = new ArrayList<>(locations);
 
-        return result;
+        elements.clear();
+        locations.clear();
+
+
+        return Pair.of(result, resultLocation);
     }
 
-    private static List<String> courses(List<Department> list, Info info, LocalDateTime localDateTime, Boolean onlyBestCourses) {
+    private static Pair<List<String>, List<LatLng>> courses(List<Department> list, Info info, LocalDateTime localDateTime, Boolean onlyBestCourses) {
 
 
         List<String> strings = new ArrayList<>();
+        List<LatLng> locations = new ArrayList<>();
 
         Map<TypeOfCurrency, MinMax> minMax = findMaxCourses(list);
 
@@ -100,9 +111,11 @@ public class StringHelper {
                 if (onlyBestCourses) {//только лушчие курсы
                     if (str.contains("<b>")) {
                         strings.add(EmojiParser.parseToUnicode(str));
+                        locations.add(dep.getLocation());
                     }
                 } else {
                     strings.add(EmojiParser.parseToUnicode(str));
+                    locations.add(dep.getLocation());
                 }
 
 
@@ -119,7 +132,7 @@ public class StringHelper {
             strings.add(EmojiParser.parseToUnicode(str));
         }
 
-        return strings;
+        return Pair.of(strings, locations);
     }
 
     private static Map<TypeOfCurrency, MinMax> findMaxCourses(List<Department> list) {

@@ -38,8 +38,6 @@ public class Department {
 	@JsonIgnore
 	private List<Currency> currencies;
 	@JsonIgnore
-	private LatLng latlng;
-	@JsonIgnore
 	private Currency eur;
 	@JsonIgnore
 	private Currency rub;
@@ -51,6 +49,8 @@ public class Department {
 	private String additionalInfo;
 	@JsonIgnore
 	private String workTimeOriginal;
+	@JsonIgnore
+	private LatLng location;
 
 	@JsonValue
 	private List<Day> worksTime = new ArrayList<>();
@@ -72,9 +72,16 @@ public class Department {
 		this.additionalInfo = builder.additionalInfo;
 		this.tel = builder.tel;
 		this.workTimeOriginal = builder.workTimeOriginal;
+		this.location = builder.location;
 	}
 
+	public LatLng getLocation() {
+		return location;
+	}
 
+	public void setLocation(LatLng location) {
+		this.location = location;
+	}
 
 	public String getLinkToTimes() {
 		return linkToTimes;
@@ -158,14 +165,6 @@ public class Department {
 
 	public void setCurrencies(List<Currency> currencies) {
 		this.currencies = currencies;
-	}
-
-	public LatLng getLatlng() {
-		return latlng;
-	}
-
-	public void setLatlng(LatLng latlng) {
-		this.latlng = latlng;
 	}
 
 	public List<Day> getWorksTime() {
@@ -324,9 +323,15 @@ public class Department {
 		private String additionalInfo;
 		private String tel;
 		private String workTimeOriginal;
+		private LatLng location;
 
 		public Builder setBankName(String bankName) {
 			this.bankName = bankName;
+			return this;
+		}
+
+		public Builder setLocation(LatLng location) {
+			this.location = location;
 			return this;
 		}
 

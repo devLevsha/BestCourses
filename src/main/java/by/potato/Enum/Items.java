@@ -21,6 +21,7 @@ public enum Items {
     BANK("Отделение"),
     QUESTION("Идеи"),
     SEND("Отправить"),
+    SETTINGS("Настройки"),
     BACK("назад");
 
     private final String text;
