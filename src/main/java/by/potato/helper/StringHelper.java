@@ -25,8 +25,8 @@ public class StringHelper {
 
     private static final String template_min_to_hour = "%d:%02d";
 
-    private static final String templateNearDist = "Город %s\nРасстояние %.3f км\nБанк %s\nАдрес %s\nВремя %s\nRUB покупка %s\nRUB продажа %s\nUSD покупка %s\nUSD продажа %s\nEURO покупка %s\nEUR продажа %s";
-    private static final String templateDepartment = "Адрес %s\nТелефон %s\nГрафик работы %s\nRUB покупка %s\nRUB продажа %s\nUSD покупка %s\nUSD продажа %s\nEURO покупка %s\nEUR продажа %s";
+    private static final String templateNearDist = "Город %s\nРасстояние %.3f км\nБанк %s\nАдрес %s\nВремя %s\nRUB покупка %s\nRUB продажа %s\nUSD покупка %s\nUSD продажа %s\nEUR покупка %s\nEUR продажа %s";
+    private static final String templateDepartment = "Адрес %s\nТелефон %s\nГрафик работы %s\nRUB покупка %s\nRUB продажа %s\nUSD покупка %s\nUSD продажа %s\nEUR покупка %s\nEUR продажа %s";
 
     private static final String templateBold = "<b>%s :thumbsup:</b>";
 

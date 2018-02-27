@@ -383,7 +383,6 @@ public class BotHelper implements Runnable {
                             case COURSES_CITY:
                                 String cityName = StringHelper.getStringWithFirstUpperCase(messageInp);
 
-
                                 //город есть в списках )
                                 if (DataBaseHelper.getInstance().getCities().contains(cityName)) {
                                     history.get(this.chatId).city = cityName;
