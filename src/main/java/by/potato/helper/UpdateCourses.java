@@ -240,15 +240,15 @@ public class UpdateCourses implements Job {
 
         if (positionNameOfCity == -1) {//в адресе нет названия города
 
-            return String.format("г. %s %s", nameOfCity, address);
+            return String.format("РБ г. %s %s", nameOfCity, address);
         } else {
 
             int positionBreacket = address.indexOf("(");
 
             if ((positionBreacket < positionNameOfCity) && (positionBreacket != -1)) {
-                return String.format("г. %s %s", nameOfCity, address);
+                return String.format("РБ г. %s %s", nameOfCity, address);
             } else {
-                return address;
+                return "РБ " + address;
             }
 
         }

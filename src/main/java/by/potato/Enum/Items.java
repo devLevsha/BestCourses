@@ -14,6 +14,7 @@ public enum Items {
     LOCATION_NEAR("Координаты"),
     NEXT("Следующие"),
     NEXT_DEP("Следующие отделения"),
+    NEXT_DEP_INLINE("Отделение след"),
     LOCATION_DIST_STEP_ONE("Координаты"),
     LOCATION_DIST_STEP_TWO("Радиус"),
     BEST_COURSES("Лучшие курсы"),

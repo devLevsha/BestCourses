@@ -1,7 +1,7 @@
 package by.potato;
 
-import com.google.maps.model.LatLng;
-
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -21,12 +21,9 @@ class MainApplication {
     public static void main(String[] args) {
 
 
-        String templateLocation = "http://www.maps.yandex.ru/?text=%f,%f";
-        LatLng location = new LatLng();
-        double fff = 12.3245234;
-        location.lat = fff;
-        location.lng = fff;
-        System.out.println(String.format(templateLocation, fff, fff));
+        System.out.println(Calendar.getInstance(TimeZone.getTimeZone("UTC")));
+        //  Calendar.
+
 
 //
 //        LatLng latLng = Geocoding.getCoordFromAddressYandex("г. Гродно, ул. Большая Троицкая, д.17, пом.3").get();

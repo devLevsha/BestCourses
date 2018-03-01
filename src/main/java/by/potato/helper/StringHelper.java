@@ -47,18 +47,37 @@ public class StringHelper {
         return courses(result, Info.NEAR, localDateTime, false);
     }
 
+    public static Pair<List<String>, List<LatLng>> getBestCoursesByCityNext(List<Department> list, LocalDateTime localDateTime) {
+
+        List<Department> result;
+        try {
+            result = list.subList(STEP_INIT_POSITION, STEP_FOR_INFO);
+        } catch (IndexOutOfBoundsException e) {
+            //если элементов меньше 5
+            result = list.subList(STEP_INIT_POSITION, list.size());
+        }
+
+
+        return courses(result, Info.INFO, localDateTime, false);
+    }
+
+
+
+
     public static Pair<List<String>, List<LatLng>> getBestCoursesByCity(List<Department> list, LocalDateTime localDateTime) {
         return courses(list, Info.INFO, localDateTime, true);
     }
 
-    public static Pair<List<String>, List<LatLng>> getPrintNearDistDepartment(List<Department> list, LocalDateTime localDateTime) {
-        return courses(list, Info.NEAR, localDateTime, false);
-    }
+
+//    public static Pair<List<String>, List<LatLng>> getPrintNearDistDepartment(List<Department> list, LocalDateTime localDateTime) {
+//        return courses(list, Info.NEAR, localDateTime, false);
+//    }
 
     public static Pair<List<String>, List<LatLng>> getBestCoursesByCityNext(Pair<List<String>, List<LatLng>> list) {
 
         List<String> elements;
         List<LatLng> locations;
+
         try {
             elements = list.getLeft().subList(STEP_INIT_POSITION, STEP_FOR_INFO);
             locations = list.getRight().subList(STEP_INIT_POSITION, STEP_FOR_INFO);
@@ -68,12 +87,11 @@ public class StringHelper {
             locations = list.getRight().subList(STEP_INIT_POSITION, list.getRight().size());
         }
 
-        List<String> result = new ArrayList<String>(elements);
+        List<String> result = new ArrayList<>(elements);
         List<LatLng> resultLocation = new ArrayList<>(locations);
 
         elements.clear();
         locations.clear();
-
 
         return Pair.of(result, resultLocation);
     }

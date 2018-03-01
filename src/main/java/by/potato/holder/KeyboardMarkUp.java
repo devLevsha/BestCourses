@@ -249,6 +249,23 @@ public class KeyboardMarkUp {
         return keyboardMarkup;
     }
 
+
+    public static InlineKeyboardMarkup getDepNextInline() {
+
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+        rowInline.add(new InlineKeyboardButton().setText("Следующие отделения").setCallbackData("Отделение след"));
+
+        rowsInline.add(rowInline);
+
+        markupInline.setKeyboard(rowsInline);
+
+        return markupInline;
+    }
+
     public static InlineKeyboardMarkup getLocationButton(LatLng location) {
 
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
