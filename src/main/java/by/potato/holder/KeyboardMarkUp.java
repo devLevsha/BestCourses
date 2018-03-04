@@ -57,6 +57,52 @@ public class KeyboardMarkUp {
         return keyboardMarkup;
     }
 
+    public static ReplyKeyboardMarkup getSettings(UserSettings userSettings) {
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setResizeKeyboard(true);
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        String textOnButton;
+
+        KeyboardRow rowOne = new KeyboardRow();
+        textOnButton = "RUB продажа " + (userSettings.getRubSell() ? ":white_check_mark:" : ":x:");
+        rowOne.add(EmojiParser.parseToUnicode(textOnButton));
+        textOnButton = "RUB покупка " + (userSettings.getRubBuy() ? ":white_check_mark:" : ":x:");
+        rowOne.add(EmojiParser.parseToUnicode(textOnButton));
+
+        KeyboardRow rowTwo = new KeyboardRow();
+        textOnButton = "USD продажа " + (userSettings.getUsdSell() ? ":white_check_mark:" : ":x:");
+        rowTwo.add(EmojiParser.parseToUnicode(textOnButton));
+        textOnButton = "USD покупка " + (userSettings.getUsdBuy() ? ":white_check_mark:" : ":x:");
+        rowTwo.add(EmojiParser.parseToUnicode(textOnButton));
+
+        KeyboardRow rowThree = new KeyboardRow();
+        textOnButton = "EUR продажа " + (userSettings.getEurSell() ? ":white_check_mark:" : ":x:");
+        rowThree.add(EmojiParser.parseToUnicode(textOnButton));
+        textOnButton = "EUR покупка " + (userSettings.getEurBuy() ? ":white_check_mark:" : ":x:");
+        rowThree.add(EmojiParser.parseToUnicode(textOnButton));
+
+        KeyboardRow rowFour = new KeyboardRow();
+        textOnButton = "Телефоны " + (userSettings.getPhone() ? ":white_check_mark:" : ":x:");
+        rowFour.add(EmojiParser.parseToUnicode(textOnButton));
+        textOnButton = "Рассписание " + (userSettings.getWorkTime() ? ":white_check_mark:" : ":x:");
+        rowFour.add(EmojiParser.parseToUnicode(textOnButton));
+
+        KeyboardRow rowFive = new KeyboardRow();
+        textOnButton = "Сохранить :floppy_disk:";
+        rowFive.add(EmojiParser.parseToUnicode(textOnButton));
+
+        keyboard.add(rowOne);
+        keyboard.add(rowTwo);
+        keyboard.add(rowThree);
+        keyboard.add(rowFour);
+        keyboard.add(rowFive);
+        keyboard.add(getBackButton());
+
+        keyboardMarkup.setKeyboard(keyboard);
+        return keyboardMarkup;
+    }
+
     public static ReplyKeyboardMarkup getTypeOfInfo() {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);

@@ -1,10 +1,8 @@
 package by.potato.db;
 
 import by.potato.Enum.TypeOfCurrency;
-import by.potato.holder.City;
+import by.potato.holder.*;
 import by.potato.holder.Currency;
-import by.potato.holder.Day;
-import by.potato.holder.Department;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -249,7 +247,6 @@ public class DataBaseHelper {
                         }
                     }
 
-
                     //section INSERT INTO
                     preparedStatement.setString(1, department.getAddress());
                     preparedStatement.setString(2, entry.getKey());
@@ -359,8 +356,6 @@ public class DataBaseHelper {
                 String cityName = resultSet.getString(15);
                 Double dist = resultSet.getDouble(16);
 
-
-                //TODO разобраться почему в БД есть нераспаршенное время
                 List<Day> workTime = new ArrayList<>();
                 if (worksTimeStr != null) {
                     workTime = mapper.readValue(worksTimeStr,
@@ -674,12 +669,12 @@ public class DataBaseHelper {
 
     }
 
-    public void insertQuestion(Long charId, String message) {
+    public void insertQuestion(Long chatId, String message) {
         String sql = "INSERT INTO Questions (id, chart_id, message) VALUES (NULL,?,?)";
 
         try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
 
-            preparedStatement.setLong(1, charId);
+            preparedStatement.setLong(1, chatId);
             preparedStatement.setString(2, message);
 
             preparedStatement.addBatch();
@@ -718,6 +713,100 @@ public class DataBaseHelper {
 
         } catch (SQLException e) {
             logger.error("getIDCities error: " + e.getMessage() + e.getCause());
+        }
+    }
+
+    public UserSettings getUserSettings(Long chatId) {
+
+        String sql = "select rub_sell,rub_buy,usd_sell,usd_buy,eur_sell,eur_buy, phone, work_time from UserSettings where chat_id = ?";
+
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+
+            preparedStatement.setLong(1, chatId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            UserSettings userSettings = new UserSettings();
+
+            if (resultSet.next()) {
+
+                Boolean rubSell = resultSet.getBoolean(1);
+                Boolean rubBuy = resultSet.getBoolean(2);
+                Boolean usdSell = resultSet.getBoolean(3);
+                Boolean usdBuy = resultSet.getBoolean(4);
+                Boolean eurSell = resultSet.getBoolean(5);
+                Boolean eurBuy = resultSet.getBoolean(6);
+                Boolean phone = resultSet.getBoolean(7);
+                Boolean workTime = resultSet.getBoolean(8);
+
+                userSettings = new UserSettings.Builder()
+                        .setRubBuy(rubBuy)
+                        .setRubSell(rubSell)
+                        .setUsdBuy(usdBuy)
+                        .setUsdSell(usdSell)
+                        .setEurBuy(eurBuy)
+                        .setEurSell(eurSell)
+                        .setPhone(phone)
+                        .setWorkTime(phone)
+                        .build();
+
+                resultSet.close();
+            }
+
+            logger.info("getUserSetting get succesfully");
+            return userSettings;
+        } catch (SQLException e) {
+            logger.error("getUserSetting error: " + e.getMessage() + e.getCause());
+            return new UserSettings();
+        }
+    }
+
+
+    public void updateUserSettings(UserSettings userSettings, Long chatId) {
+
+        String sql = "INSERT INTO UserSettings " +
+                "(chat_id,rub_sell,rub_buy,usd_sell,usd_buy,eur_sell,eur_buy,phone,work_time)" +
+                "VALUES(?,?,?,?,?,?,?,?,?)  " +
+                "ON DUPLICATE KEY UPDATE " +
+                "rub_sell = ?," +
+                "rub_buy = ?," +
+                "usd_sell = ?," +
+                "usd_buy = ?," +
+                "eur_sell = ?," +
+                "eur_buy = ?," +
+                "phone = ?," +
+                "work_time = ?";
+
+
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+
+            preparedStatement.setLong(1, chatId);
+            preparedStatement.setBoolean(2, userSettings.getRubSell());
+            preparedStatement.setBoolean(3, userSettings.getRubBuy());
+            preparedStatement.setBoolean(4, userSettings.getUsdSell());
+            preparedStatement.setBoolean(5, userSettings.getUsdBuy());
+            preparedStatement.setBoolean(6, userSettings.getEurSell());
+            preparedStatement.setBoolean(7, userSettings.getEurBuy());
+            preparedStatement.setBoolean(8, userSettings.getPhone());
+            preparedStatement.setBoolean(9, userSettings.getWorkTime());
+
+            //section INSERT INTO
+            preparedStatement.setBoolean(10, userSettings.getRubSell());
+            preparedStatement.setBoolean(11, userSettings.getRubBuy());
+            preparedStatement.setBoolean(12, userSettings.getUsdSell());
+            preparedStatement.setBoolean(13, userSettings.getUsdBuy());
+            preparedStatement.setBoolean(14, userSettings.getEurSell());
+            preparedStatement.setBoolean(15, userSettings.getEurBuy());
+            preparedStatement.setBoolean(16, userSettings.getPhone());
+            preparedStatement.setBoolean(17, userSettings.getWorkTime());
+
+
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
+
+            logger.info("updateUserSettings for user succesfully");
+        } catch (SQLException e) {
+            logger.error("updateUserSettings error: " + e.getMessage() + e.getCause());
         }
     }
 

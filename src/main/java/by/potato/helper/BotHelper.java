@@ -75,6 +75,13 @@ public class BotHelper implements Runnable {
                 continue;
             }
 
+            getChatID(update);
+
+            if (history.get(chatId) == null) {
+                initPosition();
+                this.action = Items.START;
+            }
+
             if (update.hasCallbackQuery()) {
                 workWithCallBack(update);
                 continue;
@@ -88,13 +95,7 @@ public class BotHelper implements Runnable {
                 this.messageInp = "";
             }
 
-            this.chatId = update.getMessage().getChatId();
             this.action = Items.parse(this.messageInp);
-
-            if (history.get(chatId) == null) {
-                initPosition();
-                this.action = Items.START;
-            }
 
             saveStatistic(update);
 
@@ -140,11 +141,61 @@ public class BotHelper implements Runnable {
                         sendMessage(message);
                         break;
 
-                    case SETTINGS:
-                        messageOut = "Данный функционал находится в разработке.";
+
+                    case RUB_SELL:
+                        history.get(this.chatId).userSettings.setRubSell(!(history.get(this.chatId).userSettings.getRubSell()));
+                        this.action = SETTINGS;
+                        continue;
+
+                    case RUB_BUY:
+                        history.get(this.chatId).userSettings.setRubBuy(!(history.get(this.chatId).userSettings.getRubBuy()));
+                        this.action = SETTINGS;
+                        continue;
+
+                    case USD_SELL:
+                        history.get(this.chatId).userSettings.setUsdSell(!(history.get(this.chatId).userSettings.getUsdSell()));
+                        this.action = SETTINGS;
+                        continue;
+
+                    case USD_BUY:
+                        history.get(this.chatId).userSettings.setUsdBuy(!(history.get(this.chatId).userSettings.getUsdBuy()));
+                        this.action = SETTINGS;
+                        continue;
+
+                    case EUR_SELL:
+                        history.get(this.chatId).userSettings.setEurSell(!(history.get(this.chatId).userSettings.getEurSell()));
+                        this.action = SETTINGS;
+                        continue;
+
+                    case EUR_BUY:
+                        history.get(this.chatId).userSettings.setEurBuy(!(history.get(this.chatId).userSettings.getEurBuy()));
+                        this.action = SETTINGS;
+                        continue;
+
+                    case PHONE:
+                        history.get(this.chatId).userSettings.setPhone(!(history.get(this.chatId).userSettings.getPhone()));
+                        this.action = SETTINGS;
+                        continue;
+
+                    case SCHEDULE:
+                        history.get(this.chatId).userSettings.setWorkTime(!(history.get(this.chatId).userSettings.getWorkTime()));
+                        this.action = SETTINGS;
+                        continue;
+
+                    case SAVE:
+                        DataBaseHelper.getInstance().updateUserSettings(history.get(this.chatId).userSettings, this.chatId);
+                        messageOut = "Настроки сохранены";
                         message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getStartMenu());
-                        initPosition();
+                        message.setReplyMarkup(KeyboardMarkUp.getSettings(history.get(this.chatId).userSettings));
+                        sendMessage(message);
+                        break;
+
+
+                    case SETTINGS:
+                        messageOut = "Выберите информацию которую необходимо показывать.\nНажатие на кнопку вкл/выкл настройку";
+                        message.setText(messageOut);
+                        message.setReplyMarkup(KeyboardMarkUp.getSettings(history.get(this.chatId).userSettings));
+                        forwardPosition();
                         sendMessage(message);
                         break;
 
@@ -170,9 +221,7 @@ public class BotHelper implements Runnable {
                         history.get(this.chatId).messagesAndLocation = StringHelper.getBestCoursesByCity(DataBaseHelper.getInstance().getCoursesByCity(history.get(this.chatId).city), null);
 
                     case NEXT_DEP:
-
                         printMessages(StringHelper.getBestCoursesByCityNext(history.get(this.chatId).messagesAndLocation));
-
                         messageOut = "Список лучший курсов";
                         message.setText(messageOut);
                         message.setReplyMarkup(KeyboardMarkUp.getDepNext());
@@ -418,7 +467,9 @@ public class BotHelper implements Runnable {
 
         StatusUser statusUser = new StatusUser();
         statusUser.actions.add(Items.START);
+        statusUser.userSettings = DataBaseHelper.getInstance().getUserSettings(this.chatId);
         history.put(this.chatId, statusUser);
+
     }
 
     private void forwardPosition() {
@@ -457,6 +508,15 @@ public class BotHelper implements Runnable {
         String userName = Optional.ofNullable(update.getMessage().getChat().getUserName()).orElse("not UserName");
 
         History.info(String.format("CharID %d, Action %s, FirstName %s, LastName %s, UserName %s", chatId, action.toString(), firstName, lastName, userName));
+    }
+
+    private void getChatID(Update update) {
+
+        if (update.hasCallbackQuery()) {
+            this.chatId = update.getCallbackQuery().getMessage().getChatId();
+        } else {
+            this.chatId = update.getMessage().getChatId();
+        }
     }
 
     private void printMessages(Pair<List<String>, List<LatLng>> messagesAndLocation) {

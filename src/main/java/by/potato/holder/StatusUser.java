@@ -19,6 +19,7 @@ public class StatusUser {
     public List<Department> departments;
     public LocalDateTime localDateTime;
     public Pair<List<String>, List<LatLng>> messagesAndLocation;
+    public UserSettings userSettings;
 
     public StatusUser() {
         actions = new ArrayDeque<>();

@@ -21,9 +21,19 @@ public enum Items {
     BANKS("Список банков"),
     BANK("Отделение"),
     QUESTION("Идеи"),
-    SEND("Отправить"),
     SETTINGS("Настройки"),
-    BACK("назад");
+    BACK("назад"),
+    RUB_SELL("RUB продажа"),
+    RUB_BUY("RUB покупка"),
+    USD_SELL("USD продажа"),
+    USD_BUY("USD покупка"),
+    EUR_SELL("EUR продажа"),
+    EUR_BUY("EUR покупка"),
+    PHONE("Телефоны"),
+    SCHEDULE("Рассписание"),
+    SAVE("Сохранить");
+
+
 
     private final String text;
 

@@ -10,6 +10,17 @@ public class UserSettings {
     private Boolean phone;
     private Boolean workTime;
 
+    public UserSettings() {
+        this.rubSell = true;
+        this.rubBuy = true;
+        this.usdSell = true;
+        this.usdBuy = true;
+        this.eurSell = true;
+        this.eurBuy = true;
+        this.phone = true;
+        this.workTime = true;
+    }
+
     public UserSettings(Builder builder) {
         this.rubSell = builder.rubSell;
         this.rubBuy = builder.rubBuy;
@@ -133,6 +144,10 @@ public class UserSettings {
         public Builder setWorkTime(Boolean workTime) {
             this.workTime = workTime;
             return this;
+        }
+
+        public UserSettings build() {
+            return new UserSettings(this);
         }
     }
 }
