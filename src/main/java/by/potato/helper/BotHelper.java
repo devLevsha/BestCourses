@@ -1,5 +1,6 @@
 package by.potato.helper;
 
+import by.potato.Enum.Info;
 import by.potato.Enum.Items;
 import by.potato.db.DataBaseHelper;
 import by.potato.holder.Department;
@@ -218,7 +219,8 @@ public class BotHelper implements Runnable {
 
                     case BEST_COURSES:
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
-                        history.get(this.chatId).messagesAndLocation = StringHelper.getBestCoursesByCity(DataBaseHelper.getInstance().getCoursesByCity(history.get(this.chatId).city), null);
+                        history.get(this.chatId).messagesAndLocation = StringHelper.getBestCoursesByCity(DataBaseHelper.getInstance().getCoursesByCity(history.get(this.chatId).city), null, history.get(this.chatId).userSettings);
+
 
                     case NEXT_DEP:
                         printMessages(StringHelper.getBestCoursesByCityNext(history.get(this.chatId).messagesAndLocation));
@@ -267,11 +269,12 @@ public class BotHelper implements Runnable {
 
 
                     case LOCATION_NEAR:
+                        history.get(this.chatId).info = Info.NEAR;
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
                         history.get(this.chatId).departments = DataBaseHelper.getInstance().geoDepartment(this.location, history.get(this.chatId).localDateTime);
 
                     case NEXT:
-                        printMessages(StringHelper.getPrintNearDepartment(history.get(this.chatId).departments, history.get(this.chatId).localDateTime));
+                        printMessages(StringHelper.getPrintDepartment(history.get(this.chatId)));
 
                         messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
                         message.setText(messageOut);
@@ -293,10 +296,11 @@ public class BotHelper implements Runnable {
                         break;
 
                     case LOCATION_DIST_STEP_TWO:
+                        history.get(this.chatId).info = Info.NEAR;
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
-                        List<Department> departmentsDist = DataBaseHelper.getInstance().geoDepartmentDist(history.get(this.chatId).location, history.get(this.chatId).distance);
 
-                        printMessages(StringHelper.getPrintNearDepartment(departmentsDist, history.get(this.chatId).localDateTime));
+                        List<Department> departmentsDist = DataBaseHelper.getInstance().geoDepartmentDist(history.get(this.chatId).location, history.get(this.chatId).distance);
+                        printMessages(StringHelper.getPrintDepartment(history.get(this.chatId)));
 
                         messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
                         message.setText(messageOut);
@@ -325,16 +329,14 @@ public class BotHelper implements Runnable {
                         this.action = backPosition();
                         continue;
 
-
                     default:
-
                         switch (history.get(chatId).actions.getLast()) { //последнее действие пользователя
                             case NEAR: //пользователь ввёл свои координаты через стороку
                                 this.action = LOCATION_NEAR;
-                                this.location = Geocoding.getCoordFromAddressGoogle(messageInp);
 
-                                if (this.location.get().lng == 0 && this.location.get().lat == 0) {
-                                    //не удалось получить координаты из адреса
+                                this.location = Geocoding.getCoordFromAddressCommon(messageInp);
+
+                                if (!this.location.isPresent()) {
                                     SendMessage mess = new SendMessage();
                                     String str = "К сожалению введённый адрес не корректен :confused:\nПовторите ввод";
                                     mess.setText(EmojiParser.parseToUnicode(str));
@@ -347,9 +349,10 @@ public class BotHelper implements Runnable {
                             case LOCATION_DIST_STEP_TWO:
                             case DISTANCE: //пользователь ввёл свои координаты через стороку
                                 this.action = LOCATION_DIST_STEP_ONE;
-                                this.location = Geocoding.getCoordFromAddressGoogle(messageInp);
 
-                                if (this.location.get().lng == 0 && this.location.get().lat == 0) {//не удалось получить координаты из адреса
+                                this.location = Geocoding.getCoordFromAddressCommon(messageInp);
+
+                                if (!this.location.isPresent()) {
                                     SendMessage mess = new SendMessage();
                                     String str = "К сожалению был введённый некорректный адрес :confused:\nПовторите ввод";
                                     mess.setText(EmojiParser.parseToUnicode(str));
@@ -357,7 +360,6 @@ public class BotHelper implements Runnable {
                                     sendMessage(mess);
                                     this.action = DISTANCE;
                                 }
-
                                 continue;
 
                             case LOCATION_DIST_STEP_ONE://пользователь ввёл растояние в км
@@ -375,7 +377,6 @@ public class BotHelper implements Runnable {
                                     mess.setReplyMarkup(KeyboardMarkUp.getStartMenu());
                                     sendMessage(mess);
                                     this.action = LOCATION_DIST_STEP_ONE;
-
                                 }
 
                                 continue;
@@ -446,11 +447,10 @@ public class BotHelper implements Runnable {
             case BANK:
                 history.get(this.chatId).localDateTime = LocalDateTime.now();
                 history.get(this.chatId).departments = DataBaseHelper.getInstance().getDepartmentByBankAndCity(history.get(this.chatId).city, messageInp);
-                //    List<Department> departments = DataBaseHelper.getInstance().getDepartmentByBankAndCity(history.get(this.chatId).city, messageInp);
-            case NEXT_DEP_INLINE:
+                history.get(this.chatId).info = Info.INFO;
 
-                printMessages(StringHelper.getBestCoursesByCityNext(history.get(this.chatId).departments, null));
-                //String strNext = "Посмотреть следущие :arrow_right:";
+            case NEXT_DEP_INLINE:
+                printMessages(StringHelper.getPrintDepartment(history.get(this.chatId)));
 
                 SendMessage messNext = new SendMessage();
                 String strNext = "Cписок отделений :arrow_up_small:";

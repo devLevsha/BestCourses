@@ -4,6 +4,8 @@ import by.potato.Enum.Info;
 import by.potato.Enum.TypeOfCurrency;
 import by.potato.Pairs.MinMax;
 import by.potato.holder.Department;
+import by.potato.holder.StatusUser;
+import by.potato.holder.UserSettings;
 import com.google.maps.model.LatLng;
 import com.vdurmont.emoji.EmojiParser;
 import org.apache.commons.lang3.tuple.Pair;
@@ -22,70 +24,26 @@ import java.util.Map;
 public class StringHelper {
 
     private static final Logger logger = LogManager.getLogger(StringHelper.class.getSimpleName());
-
     private static final String template_min_to_hour = "%d:%02d";
-
-    private static final String templateNearDist = "Город %s\nРасстояние %.3f км\nБанк %s\nАдрес %s\nВремя %s\nRUB покупка %s\nRUB продажа %s\nUSD покупка %s\nUSD продажа %s\nEUR покупка %s\nEUR продажа %s";
-    private static final String templateDepartment = "Адрес %s\nТелефон %s\nГрафик работы %s\nRUB покупка %s\nRUB продажа %s\nUSD покупка %s\nUSD продажа %s\nEUR покупка %s\nEUR продажа %s";
-
     private static final String templateBold = "<b>%s :thumbsup:</b>";
-
     private static final int STEP_FOR_INFO = 5;
     private static final int STEP_INIT_POSITION = 0;
 
-    public static Pair<List<String>, List<LatLng>> getPrintNearDepartment(List<Department> list, LocalDateTime localDateTime) {
 
-        List<Department> result;
-        try {
-            result = list.subList(STEP_INIT_POSITION, STEP_FOR_INFO);
-        } catch (IndexOutOfBoundsException e) {
-            //если элементов меньше 5
-            result = list.subList(STEP_INIT_POSITION, list.size());
-        }
+    public static Pair<List<String>, List<LatLng>> getPrintDepartment(StatusUser statusUser) {
+        List<Department> result = getFiveElements(statusUser.departments);
 
-
-        return courses(result, Info.NEAR, localDateTime, false);
+        return courses(result, statusUser.info, statusUser.localDateTime, false, statusUser.userSettings);
     }
 
-    public static Pair<List<String>, List<LatLng>> getBestCoursesByCityNext(List<Department> list, LocalDateTime localDateTime) {
-
-        List<Department> result;
-        try {
-            result = list.subList(STEP_INIT_POSITION, STEP_FOR_INFO);
-        } catch (IndexOutOfBoundsException e) {
-            //если элементов меньше 5
-            result = list.subList(STEP_INIT_POSITION, list.size());
-        }
-
-
-        return courses(result, Info.INFO, localDateTime, false);
+    public static Pair<List<String>, List<LatLng>> getBestCoursesByCity(List<Department> list, LocalDateTime localDateTime, UserSettings userSettings) {
+        return courses(list, Info.INFO, localDateTime, true, userSettings);
     }
-
-
-
-
-    public static Pair<List<String>, List<LatLng>> getBestCoursesByCity(List<Department> list, LocalDateTime localDateTime) {
-        return courses(list, Info.INFO, localDateTime, true);
-    }
-
-
-//    public static Pair<List<String>, List<LatLng>> getPrintNearDistDepartment(List<Department> list, LocalDateTime localDateTime) {
-//        return courses(list, Info.NEAR, localDateTime, false);
-//    }
 
     public static Pair<List<String>, List<LatLng>> getBestCoursesByCityNext(Pair<List<String>, List<LatLng>> list) {
 
-        List<String> elements;
-        List<LatLng> locations;
-
-        try {
-            elements = list.getLeft().subList(STEP_INIT_POSITION, STEP_FOR_INFO);
-            locations = list.getRight().subList(STEP_INIT_POSITION, STEP_FOR_INFO);
-        } catch (IndexOutOfBoundsException e) {
-            //если элементов меньше 5
-            elements = list.getLeft().subList(STEP_INIT_POSITION, list.getLeft().size());
-            locations = list.getRight().subList(STEP_INIT_POSITION, list.getRight().size());
-        }
+        List<String> elements = getFiveElements(list.getLeft());
+        List<LatLng> locations = getFiveElements(list.getRight());
 
         List<String> result = new ArrayList<>(elements);
         List<LatLng> resultLocation = new ArrayList<>(locations);
@@ -96,8 +54,19 @@ public class StringHelper {
         return Pair.of(result, resultLocation);
     }
 
-    private static Pair<List<String>, List<LatLng>> courses(List<Department> list, Info info, LocalDateTime localDateTime, Boolean onlyBestCourses) {
+    private static <T> List<T> getFiveElements(List<T> list) {
+        List<T> result;
+        try {
+            result = list.subList(STEP_INIT_POSITION, STEP_FOR_INFO);
+        } catch (IndexOutOfBoundsException e) {
+            //если элементов меньше 5
+            result = list.subList(STEP_INIT_POSITION, list.size());
+        }
+        return result;
+    }
 
+
+    private static Pair<List<String>, List<LatLng>> courses(List<Department> list, Info info, LocalDateTime localDateTime, Boolean onlyBestCourses, UserSettings userSettings) {
 
         List<String> strings = new ArrayList<>();
         List<LatLng> locations = new ArrayList<>();
@@ -108,7 +77,7 @@ public class StringHelper {
             Message mess = new Message();
 
             String eurSell = bestCourses(minMax.get(TypeOfCurrency.EUR).getMinSell(), dep.getEur().getValueSell());
-            String euroBuy = bestCourses(minMax.get(TypeOfCurrency.EUR).getMaxBuy(), dep.getEur().getValueBuy());
+            String eurBuy = bestCourses(minMax.get(TypeOfCurrency.EUR).getMaxBuy(), dep.getEur().getValueBuy());
             String usdSell = bestCourses(minMax.get(TypeOfCurrency.USD).getMinSell(), dep.getUsd().getValueSell());
             String usdBuy = bestCourses(minMax.get(TypeOfCurrency.USD).getMaxBuy(), dep.getUsd().getValueBuy());
             String rubSell = bestCourses(minMax.get(TypeOfCurrency.RUB).getMinSell(), dep.getRub().getValueSell());
@@ -117,12 +86,27 @@ public class StringHelper {
             try {
                 String str = "";
 
+                String currencies =
+                        (userSettings.getRubSell() ? "\nRUB продажа " + rubSell : "")
+                                + (userSettings.getRubBuy() ? "\nRUB покупка " + rubBuy : "")
+                                + (userSettings.getUsdSell() ? "\nUSD продажа " + usdSell : "")
+                                + (userSettings.getUsdBuy() ? "\nUSD покупка " + usdBuy : "")
+                                + (userSettings.getEurSell() ? "\nEUR продажа " + eurSell : "")
+                                + (userSettings.getEurBuy() ? "\nEUR покупка " + eurBuy : "");
+
                 switch (info) {
                     case NEAR:
-                        str = String.format(templateNearDist, dep.getCityName(), dep.getDist(), dep.getBankName(), dep.getAddress(), dep.getWorTime(localDateTime), rubBuy, rubSell, usdBuy, usdSell, euroBuy, eurSell);
+                        str = dep.getAddress()
+                                + String.format("\nРасстояние %.3f км", dep.getDist())
+                                + "\nВремя " + dep.getWorTime(localDateTime)
+                                + currencies;
                         break;
                     case INFO:
-                        str = String.format(templateDepartment, dep.getAddress(), dep.getTel(), dep.getWorkTimeOriginal(), rubBuy, rubSell, usdBuy, usdSell, euroBuy, eurSell);
+
+                        str = "Адрес " + dep.getAddress()
+                                + (userSettings.getPhone() ? "\nТелефон " + dep.getTel() : "")
+                                + (userSettings.getWorkTime() ? "\nГрафик работы " + dep.getWorkTimeOriginal() : "")
+                                + currencies;
                         break;
                 }
 
@@ -135,7 +119,6 @@ public class StringHelper {
                     strings.add(EmojiParser.parseToUnicode(str));
                     locations.add(dep.getLocation());
                 }
-
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -168,11 +151,9 @@ public class StringHelper {
         map.put(TypeOfCurrency.RUB, new MinMax(rubMinSell, rubMaxBuy));
 
         return map;
-
     }
 
     private static String bestCourses(Double max, Double current) {
-
         if (max.compareTo(current) == 0) {
             return String.format(templateBold, max);
         } else {
@@ -181,7 +162,6 @@ public class StringHelper {
     }
 
     public static String getStringWithFirstUpperCase(String word) {
-
         String str = word.trim().toLowerCase();
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }

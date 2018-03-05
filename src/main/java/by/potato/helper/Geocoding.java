@@ -20,9 +20,21 @@ public class Geocoding {
     private static final GeoApiContext contextGoogle = new GeoApiContext.Builder().apiKey("AIzaSyAnSe8k3kMruEIhx8qDO40O2aXLloHwq9s").build();
     private static final Logger logger = LogManager.getLogger(Geocoding.class.getSimpleName());
 
-    public static Optional<LatLng> getCoordFromAddressGoogle(String address) {
+    public static Optional<LatLng> getCoordFromAddressCommon(String address) {
+        logger.info("Geocoding address : " + address);
 
-        logger.info("Google. Geocoding address : " + address);
+        Optional<LatLng> location = getCoordFromAddressGoogle(address);
+
+        if (!location.isPresent()) {
+            location = getCoordFromAddressYandex(address);
+        }
+
+        return location;
+    }
+
+    private static Optional<LatLng> getCoordFromAddressGoogle(String address) {
+
+        logger.info("Google geocoding.");
 
         try {
             GeocodingResult[] coordinates = GeocodingApi.newRequest(contextGoogle)
@@ -35,13 +47,13 @@ public class Geocoding {
 
         } catch (ApiException | InterruptedException | IOException | ArrayIndexOutOfBoundsException e) {
             logger.error("  Google. Not coordinat for this address " + address);
-            return Optional.of(new LatLng());
+            return Optional.empty();
         }
     }
 
-    public static Optional<LatLng> getCoordFromAddressYandex(String address) {
+    private static Optional<LatLng> getCoordFromAddressYandex(String address) {
 
-        logger.info("Yandex. Geocoding address : " + address);
+        logger.info("Yandex geocoding.");
 
         YaGeocoder geocoder = new YaGeocoder(new DefaultHttpClient());
 
@@ -57,7 +69,8 @@ public class Geocoding {
 
         } catch (IOException | IndexOutOfBoundsException e) {
             logger.error("Yandex. Not coordinat for this address " + address);
-            return Optional.of(new LatLng());
+            return Optional.empty();
+
         }
     }
 
