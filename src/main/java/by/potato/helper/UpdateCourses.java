@@ -217,16 +217,8 @@ public class UpdateCourses implements Job {
         dep.setLinkToTimes(linkForMoreInformation);
 
         if (!currentAddress.contains(dep.getAddress())) {
-
-            //attempt maps.yandex.api
-            LatLng latLng = Geocoding.getCoordFromAddressYandex(dep.getAddress()).get();
-
-            //attempt maps.google.api
-            if (latLng.lng == 0 && latLng.lat == 0) {
-                latLng = Geocoding.getCoordFromAddressGoogle(dep.getAddress()).get();
-            }
-
-            dep.setLocation(latLng);
+            LatLng location = Geocoding.getCoordFromAddressCommon(dep.getAddress()).get();
+            dep.setLocation(location);
         } else {
             dep.setLocation(new LatLng());
         }
