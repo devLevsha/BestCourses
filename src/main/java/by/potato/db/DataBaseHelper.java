@@ -94,27 +94,9 @@ public class DataBaseHelper {
         return LazyDataBaseHelper.helper;
     }
 
-    public void destroyPool() {
-
-        try {
-            this.sc.shutdownNow();
-            logger.info("Health checker of connection pool closed successfully!");
-            this.mgr.destroyConnectionPool(this.poolName);
-            this.mgr = null;
-            logger.info("Connection pool destroyed successfully!");
-        } catch (UniversalConnectionPoolException e) {
-            logger.error("Can't destroyed connection pool. Error: %s", e.getMessage(), e);
-        }
-
-    }
-
     //обновить список городов
     public void updateCities(List<City> elements) {
-
-        String sql = "INSERT INTO Cities VALUES (null,?)";
-
         Set<String> currentCity = this.citiesID.keySet();
-
         Set<String> uniqueCity = new HashSet<>();
 
         for (City city : elements) {
@@ -123,7 +105,7 @@ public class DataBaseHelper {
 
         uniqueCity.removeAll(currentCity);
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.UpdateCities)) {
 
             for (String elem : uniqueCity) {
 
@@ -141,13 +123,25 @@ public class DataBaseHelper {
         }
     }
 
+    public void destroyPool() {
+
+        try {
+            this.sc.shutdownNow();
+            logger.info("Health checker of connection pool closed successfully!");
+            this.mgr.destroyConnectionPool(this.poolName);
+            this.mgr = null;
+            logger.info("Connection pool destroyed successfully!");
+        } catch (UniversalConnectionPoolException e) {
+            logger.error("Can't destroyed connection pool. Error: %s", e.getMessage(), e);
+        }
+
+    }
+
     //список всех адресов отделений в определённом городе
     public List<String> getAddressFromCity(String city) {
         List<String> elements = new ArrayList<>();
 
-        String sql = "select d.address from Departments as d, Cities as c where c.id = d.id_cities and c.name = ?";
-
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.GetAddressFromCity)) {
 
             preparedStatement.setString(1, city);
 
@@ -173,19 +167,14 @@ public class DataBaseHelper {
 
     //обновить время работы отделений
     public void updateWorkTime(List<Triple<String, List<Day>, String>> elements) {
-
-        String sql = "UPDATE Departments SET workTimes = ?, workTimesOriginal = ? WHERE link_work_time = ?";
-
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.UpdateWorkTime)) {
 
             for (Triple<String, List<Day>, String> elem : elements) {
-
                 String jsonInString = mapper.writeValueAsString(elem.getMiddle());
 
                 preparedStatement.setString(1, jsonInString);
                 preparedStatement.setString(2, elem.getRight());
                 preparedStatement.setString(3, elem.getLeft());
-
                 preparedStatement.addBatch();
             }
 
@@ -203,25 +192,9 @@ public class DataBaseHelper {
 
     //обновить или добавить новое отделение
     public void updateDepartments(Map<String, List<Department>> listBank, String nameOfCity, Instant instans) {
-
-        String sql = "INSERT INTO Departments " +
-                "(address,bank_name,id_cities,doll_buy,doll_sell,doll_multiplier,euro_buy,euro_sell,euro_multiplier,rub_buy,rub_sell,rub_multiplier,lat,lng,workTimes,link_work_time,phone,last_update)" +
-                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)  " +
-                "ON DUPLICATE KEY UPDATE " +
-                "doll_buy = ?," +
-                "doll_sell = ?," +
-                "doll_multiplier = ?," +
-                "euro_buy = ?," +
-                "euro_sell = ?," +
-                "euro_multiplier = ?," +
-                "rub_buy = ?," +
-                "rub_sell = ?," +
-                "rub_multiplier = ?," +
-                "last_update = ?";
-
         int idCity = this.citiesID.get(nameOfCity);
 
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.UpdateDepartments)) {
 
             for (Map.Entry<String, List<Department>> entry : listBank.entrySet()) {
 
@@ -266,7 +239,6 @@ public class DataBaseHelper {
                     preparedStatement.setString(16, department.getLinkToTimes());
                     preparedStatement.setString(17, department.getTel());
                     preparedStatement.setLong(18, instans.getEpochSecond());
-
                     //section ON DUPLICATE
                     preparedStatement.setDouble(19, doll.getValueBuy());
                     preparedStatement.setDouble(20, doll.getValueSell());
@@ -292,16 +264,14 @@ public class DataBaseHelper {
         } catch (JsonProcessingException e) {
             logger.error("POJO to JSON fail " + e.getMessage() + e.getCause());
         } catch (Exception e) {
-            logger.error("ERRROR " + e.getMessage() + e.getCause() + e.getStackTrace());
+            logger.error("ERROR " + e.getMessage() + e.getCause() + e.getStackTrace().toString());
         }
     }
 
     public void deleteUnusedDepartment() {
         Long currentMinusTwoDays = Instant.now().minus(2, ChronoUnit.DAYS).getEpochSecond();
 
-        String sql = "DELETE FROM Departments WHERE last_update < ?";
-
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.DeleteUnusedDepartment)) {
 
             preparedStatement.setLong(1, currentMinusTwoDays);
 
@@ -310,6 +280,72 @@ public class DataBaseHelper {
         } catch (SQLException e) {
             logger.error("Error deleteUnusedDepartment " + e.getMessage() + e.getCause());
         }
+    }
+
+    //Список обменных пунктов
+    public List<Department> getCoursesByCity(String city) {
+        List<Department> result = new ArrayList<>();
+
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.GetCoursesByCity)) {
+
+            preparedStatement.setString(1, city);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+
+                String bankName = resultSet.getString(1);
+                String address = resultSet.getString(2);
+
+                Currency euro = new Currency(TypeOfCurrency.EUR);
+                euro.setValueBuy(resultSet.getDouble(3));
+                euro.setValueSell(resultSet.getDouble(4));
+                euro.setMultiplier(resultSet.getInt(5));
+
+                Currency rub = new Currency(TypeOfCurrency.RUB);
+                rub.setValueBuy(resultSet.getDouble(6));
+                rub.setValueSell(resultSet.getDouble(7));
+                rub.setMultiplier(resultSet.getInt(8));
+
+                Currency usd = new Currency(TypeOfCurrency.USD);
+                usd.setValueBuy(resultSet.getDouble(9));
+                usd.setValueSell(resultSet.getDouble(10));
+                usd.setMultiplier(resultSet.getInt(11));
+
+                String tel = resultSet.getString(12);
+                String workTimeOriginal = resultSet.getString(13);
+
+                LatLng latLng = new LatLng();
+                latLng.lat = resultSet.getDouble(14);
+                latLng.lng = resultSet.getDouble(15);
+
+
+                Department department =
+                        new Department.Builder()
+                                .setBankName(bankName)
+                                .setAddress(address)
+                                .setEur(euro)
+                                .setRub(rub)
+                                .setUsd(usd)
+                                .setCityName(city)
+                                .setTel(tel)
+                                .setWorkTimeOriginal(workTimeOriginal)
+                                .setLocation(latLng)
+                                .build();
+
+                result.add(department);
+            }
+
+            logger.info(String.format("Read courses for city %s", city));
+
+            preparedStatement.close();
+            resultSet.close();
+
+        } catch (SQLException e) {
+            logger.error("getCoursesByCity error: " + e.getMessage() + e.getCause());
+        }
+
+        return result;
     }
 
     public List<Department> geoDepartment(Optional<LatLng> location, LocalDateTime localDateTime) {
@@ -327,7 +363,6 @@ public class DataBaseHelper {
             ResultSet resultSet = callableStatement.executeQuery();
 
             while (resultSet.next()) {
-
 
                 String bankName = resultSet.getString(1);
                 String address = resultSet.getString(2);
@@ -468,102 +503,11 @@ public class DataBaseHelper {
         return result;
     }
 
-    //Список обменных пунктов
-    public List<Department> getCoursesByCity(String city) {
-
-
-        List<Department> result = new ArrayList<>();
-
-        String sql = "SELECT dep.bank_name, " +
-                "dep.address," +
-                "dep.euro_buy," +
-                "dep.euro_sell," +
-                "dep.euro_multiplier," +
-                "dep.rub_buy," +
-                "dep.rub_sell," +
-                "dep.rub_multiplier," +
-                "dep.doll_buy," +
-                "dep.doll_sell," +
-                "dep.doll_multiplier," +
-                "dep.phone," +
-                "dep.workTimesOriginal," +
-                "dep.lat," +
-                "dep.lng" +
-                " FROM Departments as dep, Cities as c  WHERE c.name = ? and c.id = dep.id_cities";
-
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
-
-            preparedStatement.setString(1, city);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-
-                String bankName = resultSet.getString(1);
-                String address = resultSet.getString(2);
-
-                Currency euro = new Currency(TypeOfCurrency.EUR);
-                euro.setValueBuy(resultSet.getDouble(3));
-                euro.setValueSell(resultSet.getDouble(4));
-                euro.setMultiplier(resultSet.getInt(5));
-
-                Currency rub = new Currency(TypeOfCurrency.RUB);
-                rub.setValueBuy(resultSet.getDouble(6));
-                rub.setValueSell(resultSet.getDouble(7));
-                rub.setMultiplier(resultSet.getInt(8));
-
-                Currency usd = new Currency(TypeOfCurrency.USD);
-                usd.setValueBuy(resultSet.getDouble(9));
-                usd.setValueSell(resultSet.getDouble(10));
-                usd.setMultiplier(resultSet.getInt(11));
-
-                String tel = resultSet.getString(12);
-                String workTimeOriginal = resultSet.getString(13);
-
-                LatLng latLng = new LatLng();
-                latLng.lat = resultSet.getDouble(14);
-                latLng.lng = resultSet.getDouble(15);
-
-
-                Department department =
-                        new Department.Builder()
-                                .setBankName(bankName)
-                                .setAddress(address)
-                                .setEur(euro)
-                                .setRub(rub)
-                                .setUsd(usd)
-                                .setCityName(city)
-                                .setTel(tel)
-                                .setWorkTimeOriginal(workTimeOriginal)
-                                .setLocation(latLng)
-                                .build();
-
-                result.add(department);
-            }
-
-            logger.info(String.format("Read courses for city %s", city));
-
-            preparedStatement.close();
-            resultSet.close();
-
-        } catch (SQLException e) {
-            logger.error("getCoursesByCity error: " + e.getMessage() + e.getCause());
-        }
-
-        return result;
-    }
-
     //список банков в городе
     public List<String> getBanksByCity(String city) {
-
         List<String> result = new ArrayList<>();
 
-        String sql = "SELECT DISTINCT bank_name " +
-                "FROM Departments as dep, Cities as c  " +
-                "WHERE c.name = ? and c.id = dep.id_cities " +
-                "ORDER BY bank_name ASC";
-
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.GetBanksByCity)) {
 
             preparedStatement.setString(1, city);
 
@@ -590,24 +534,7 @@ public class DataBaseHelper {
     public List<Department> getDepartmentByBankAndCity(String city, String bankName) {
         List<Department> result = new ArrayList<>();
 
-        String sql = "SELECT " +
-                "dep.address," +
-                "dep.euro_buy," +
-                "dep.euro_sell," +
-                "dep.euro_multiplier," +
-                "dep.rub_buy," +
-                "dep.rub_sell," +
-                "dep.rub_multiplier," +
-                "dep.doll_buy," +
-                "dep.doll_sell," +
-                "dep.doll_multiplier," +
-                "dep.phone," +
-                "dep.workTimesOriginal," +
-                "dep.lat," +
-                "dep.lng " +
-                " FROM Departments as dep, Cities as c  WHERE c.name = ? and c.id = dep.id_cities and bank_name = ?";
-
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.GetDepartmentByBankAndCity)) {
 
             preparedStatement.setString(1, city);
             preparedStatement.setString(2, bankName);
@@ -670,9 +597,7 @@ public class DataBaseHelper {
     }
 
     public void insertQuestion(Long chatId, String message) {
-        String sql = "INSERT INTO Questions (id, chart_id, message) VALUES (NULL,?,?)";
-
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.InsertQuestion)) {
 
             preparedStatement.setLong(1, chatId);
             preparedStatement.setString(2, message);
@@ -691,14 +616,11 @@ public class DataBaseHelper {
 
     //получить список городов
     private void getIDCities() {
-
         this.citiesID = new ConcurrentHashMap<>();
-
-        String sql = "select * from Cities";
 
         try (Connection conn = this.pds.getConnection(); Statement statement = conn.createStatement()) {
 
-            ResultSet resultSet = statement.executeQuery(sql);
+            ResultSet resultSet = statement.executeQuery(SQL.GetIDCities);
 
             while (resultSet.next()) {
                 this.citiesID.put(resultSet.getString("name"), resultSet.getInt("id"));
@@ -717,10 +639,7 @@ public class DataBaseHelper {
     }
 
     public UserSettings getUserSettings(Long chatId) {
-
-        String sql = "select rub_sell,rub_buy,usd_sell,usd_buy,eur_sell,eur_buy, phone, work_time from UserSettings where chat_id = ?";
-
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.GetUserSettings)) {
 
             preparedStatement.setLong(1, chatId);
 
@@ -761,24 +680,8 @@ public class DataBaseHelper {
         }
     }
 
-
     public void updateUserSettings(UserSettings userSettings, Long chatId) {
-
-        String sql = "INSERT INTO UserSettings " +
-                "(chat_id,rub_sell,rub_buy,usd_sell,usd_buy,eur_sell,eur_buy,phone,work_time)" +
-                "VALUES(?,?,?,?,?,?,?,?,?)  " +
-                "ON DUPLICATE KEY UPDATE " +
-                "rub_sell = ?," +
-                "rub_buy = ?," +
-                "usd_sell = ?," +
-                "usd_buy = ?," +
-                "eur_sell = ?," +
-                "eur_buy = ?," +
-                "phone = ?," +
-                "work_time = ?";
-
-
-        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
+        try (Connection conn = this.pds.getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(SQL.UpdateUserSettings)) {
 
             preparedStatement.setLong(1, chatId);
             preparedStatement.setBoolean(2, userSettings.getRubSell());
@@ -810,19 +713,13 @@ public class DataBaseHelper {
         }
     }
 
-    public Set<String> getCities() {
-        return this.cities;
-    }
-
     //получить ссылки о подробной информации об отделении
     public List<String> getLinkWorkTime() {
         List<String> list = new ArrayList<>();
 
-        String sql = "select link_work_time from Departments";
-
         try (Connection conn = this.pds.getConnection(); Statement statement = conn.createStatement()) {
 
-            ResultSet resultSet = statement.executeQuery(sql);
+            ResultSet resultSet = statement.executeQuery(SQL.GetLinkWorkTime);
 
             while (resultSet.next()) {
                 list.add(resultSet.getString("link_work_time"));
@@ -839,6 +736,10 @@ public class DataBaseHelper {
 
         return list;
 
+    }
+
+    public Set<String> getCities() {
+        return this.cities;
     }
 
     private static class LazyDataBaseHelper {

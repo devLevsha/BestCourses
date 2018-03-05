@@ -38,9 +38,6 @@ public class UpdateCourses implements Job {
 
     public UpdateCourses() {
         this.getNameOfCities();
-
-        //for debug
-        //cities.add(new City("Несвиж","nesvizh"));
     }
 
     //get name of city and update data in DB
@@ -55,7 +52,7 @@ public class UpdateCourses implements Job {
             DataBaseHelper.getInstance().updateCities(cities);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("getNameOfCities " + e.getCause() + e.getMessage());
         }
     }
 
@@ -103,7 +100,7 @@ public class UpdateCourses implements Job {
                     depList.forEach(j -> listBank.get(nameOfBank).add(getDepartment(j, city.getRusName(), currentAddress)));
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("getInfoCityBanks " + e.getCause() + e.getMessage());
                 }
             });
 
@@ -148,12 +145,9 @@ public class UpdateCourses implements Job {
         for (Element k : listCurrency) {
 
             try {
-
-
                 if (k.getElementsByTag("i").size() == 0) {
                     continue;
                 }
-
 
                 String value = k.text();
 
@@ -195,8 +189,7 @@ public class UpdateCourses implements Job {
                 infoCurrency.put(type, cur);
 
             } catch (Exception e) {
-                System.out.println(nameOfCity);
-                e.printStackTrace();
+                logger.error("getDepartment " + e.getCause() + e.getMessage());
             }
         }
 
@@ -231,32 +224,26 @@ public class UpdateCourses implements Job {
         int positionNameOfCity = address.indexOf(nameOfCity);
 
         if (positionNameOfCity == -1) {//в адресе нет названия города
-
             return String.format("РБ г. %s %s", nameOfCity, address);
         } else {
 
-            int positionBreacket = address.indexOf("(");
+            int positionBrecket = address.indexOf("(");
 
-            if ((positionBreacket < positionNameOfCity) && (positionBreacket != -1)) {
+            if ((positionBrecket < positionNameOfCity) && (positionBrecket != -1)) {
                 return String.format("РБ г. %s %s", nameOfCity, address);
             } else {
                 return "РБ " + address;
             }
-
         }
-
     }
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
-        //for test count thread 1
         ExecutorService es = Executors.newFixedThreadPool(9);
-        //ExecutorService es = Executors.newFixedThreadPool(1);
 
         for (City city : cities) {
             es.submit(() -> getInfoCityBanks(city));
         }
-
         es.shutdown();
     }
 }

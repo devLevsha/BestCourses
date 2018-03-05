@@ -373,7 +373,6 @@ public class BotHelper implements Runnable {
 
                                 continue;
 
-
                             case QUESTION:
                                 DataBaseHelper.getInstance().insertQuestion(this.chatId, messageInp);
 
@@ -385,7 +384,6 @@ public class BotHelper implements Runnable {
                                 initPosition();
                                 this.action = START;
                                 continue;
-
 
                             default:
                                 SendMessage mess = new SendMessage();
@@ -438,12 +436,10 @@ public class BotHelper implements Runnable {
     }
 
     private void initPosition() {
-
         StatusUser statusUser = new StatusUser();
         statusUser.actions.add(Items.START);
         statusUser.userSettings = DataBaseHelper.getInstance().getUserSettings(this.chatId);
         history.put(this.chatId, statusUser);
-
     }
 
     private void forwardPosition() {
@@ -468,7 +464,6 @@ public class BotHelper implements Runnable {
 
     private void sendMessage(SendMessage message) {
         message.setParseMode("HTML");
-
         outStringMessage.add(message);
     }
 
@@ -502,14 +497,14 @@ public class BotHelper implements Runnable {
 
     private void printMessages(Pair<List<String>, List<LatLng>> messagesAndLocation) {
         List<String> messages = messagesAndLocation.getLeft();
-        List<LatLng> latLngs = messagesAndLocation.getRight();
+        List<LatLng> location = messagesAndLocation.getRight();
 
         for (int i = 0; i < messages.size(); i++) {
             SendMessage mess = new SendMessage();
             mess.setText(messages.get(i));
             mess.setChatId(this.chatId);
             try {
-                mess.setReplyMarkup(KeyboardMarkUp.getLocationButton(latLngs.get(i)));
+                mess.setReplyMarkup(KeyboardMarkUp.getLocationButton(location.get(i)));
             } catch (IndexOutOfBoundsException e) {
                 logger.error(e.getMessage());
             }
