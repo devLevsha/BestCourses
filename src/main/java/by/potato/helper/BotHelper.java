@@ -191,7 +191,6 @@ public class BotHelper implements Runnable {
                         sendMessage(message);
                         break;
 
-
                     case SETTINGS:
                         messageOut = "Выберите информацию которую необходимо показывать.\nНажатие на кнопку вкл/выкл настройку";
                         message.setText(messageOut);
@@ -199,7 +198,6 @@ public class BotHelper implements Runnable {
                         forwardPosition();
                         sendMessage(message);
                         break;
-
 
                     case COURSES_CITY:
                         messageOut = "Введите название города (Пинск, Речица и т.д.)";
@@ -220,8 +218,6 @@ public class BotHelper implements Runnable {
                     case BEST_COURSES:
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
                         history.get(this.chatId).messagesAndLocation = StringHelper.getBestCoursesByCity(DataBaseHelper.getInstance().getCoursesByCity(history.get(this.chatId).city), null, history.get(this.chatId).userSettings);
-
-
                     case NEXT_DEP:
                         printMessages(StringHelper.getBestCoursesByCityNext(history.get(this.chatId).messagesAndLocation));
                         messageOut = "Список лучший курсов";
@@ -256,7 +252,6 @@ public class BotHelper implements Runnable {
                         forwardPosition();
                         sendMessage(message);
                         break;
-
 
                     case DISTANCE:
                     case NEAR:
@@ -333,15 +328,10 @@ public class BotHelper implements Runnable {
                         switch (history.get(chatId).actions.getLast()) { //последнее действие пользователя
                             case NEAR: //пользователь ввёл свои координаты через стороку
                                 this.action = LOCATION_NEAR;
-
                                 this.location = Geocoding.getCoordFromAddressCommon(messageInp);
 
                                 if (!this.location.isPresent()) {
-                                    SendMessage mess = new SendMessage();
-                                    String str = "К сожалению введённый адрес не корректен :confused:\nПовторите ввод";
-                                    mess.setText(EmojiParser.parseToUnicode(str));
-                                    mess.setChatId(this.chatId);
-                                    sendMessage(mess);
+                                    errorEnterPrint("К сожалению введённый адрес не корректен :confused:\nПовторите ввод");
                                     this.action = NEAR;
                                 }
                                 continue;
@@ -349,15 +339,10 @@ public class BotHelper implements Runnable {
                             case LOCATION_DIST_STEP_TWO:
                             case DISTANCE: //пользователь ввёл свои координаты через стороку
                                 this.action = LOCATION_DIST_STEP_ONE;
-
                                 this.location = Geocoding.getCoordFromAddressCommon(messageInp);
 
                                 if (!this.location.isPresent()) {
-                                    SendMessage mess = new SendMessage();
-                                    String str = "К сожалению был введённый некорректный адрес :confused:\nПовторите ввод";
-                                    mess.setText(EmojiParser.parseToUnicode(str));
-                                    mess.setChatId(this.chatId);
-                                    sendMessage(mess);
+                                    errorEnterPrint("К сожалению введённый адрес не корректен :confused:\nПовторите ввод");
                                     this.action = DISTANCE;
                                 }
                                 continue;
@@ -365,17 +350,10 @@ public class BotHelper implements Runnable {
                             case LOCATION_DIST_STEP_ONE://пользователь ввёл растояние в км
 
                                 try {
-
                                     history.get(this.chatId).distance = new Double(messageInp);
                                     this.action = Items.LOCATION_DIST_STEP_TWO;
                                 } catch (NumberFormatException e) {
-
-                                    SendMessage mess = new SendMessage();
-                                    String str = "К сожалению вы ввели не число :confused:\nПовторите ввод";
-                                    mess.setText(EmojiParser.parseToUnicode(str));
-                                    mess.setChatId(this.chatId);
-                                    mess.setReplyMarkup(KeyboardMarkUp.getStartMenu());
-                                    sendMessage(mess);
+                                    errorEnterPrint("К сожалению вы ввели не число :confused:\nПовторите ввод");
                                     this.action = LOCATION_DIST_STEP_ONE;
                                 }
 
@@ -389,11 +367,7 @@ public class BotHelper implements Runnable {
                                     history.get(this.chatId).city = cityName;
                                     this.action = TYPE_OF_INFO;
                                 } else {
-                                    SendMessage mess = new SendMessage();
-                                    String str = "К сожалению Ваш город не найдет :confused:\nПовторите ввод";
-                                    mess.setText(EmojiParser.parseToUnicode(str));
-                                    mess.setChatId(this.chatId);
-                                    sendMessage(mess);
+                                    errorEnterPrint("К сожалению Ваш город не найдет :confused:\nПовторите ввод");
                                     this.action = COURSES_CITY;
                                 }
 
@@ -517,6 +491,13 @@ public class BotHelper implements Runnable {
         } else {
             this.chatId = update.getMessage().getChatId();
         }
+    }
+
+    private void errorEnterPrint(String str) {
+        SendMessage mess = new SendMessage();
+        mess.setText(EmojiParser.parseToUnicode(str));
+        mess.setChatId(this.chatId);
+        sendMessage(mess);
     }
 
     private void printMessages(Pair<List<String>, List<LatLng>> messagesAndLocation) {
