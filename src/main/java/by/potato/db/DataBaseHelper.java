@@ -348,7 +348,7 @@ public class DataBaseHelper {
         return result;
     }
 
-    public List<Department> geoDepartment(Optional<LatLng> location, LocalDateTime localDateTime) {
+    public List<Department> geoDepartment(LatLng location, LocalDateTime localDateTime) {
 
         DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
         LocalTime localTime = localDateTime.toLocalTime();
@@ -357,8 +357,8 @@ public class DataBaseHelper {
 
         try (Connection conn = this.pds.getConnection(); CallableStatement callableStatement = conn.prepareCall("{call geoDepartment(?,?)}")) {
 
-            callableStatement.setDouble(1, location.get().lat);
-            callableStatement.setDouble(2, location.get().lng);
+            callableStatement.setDouble(1, location.lat);
+            callableStatement.setDouble(2, location.lng);
 
             ResultSet resultSet = callableStatement.executeQuery();
 
@@ -428,7 +428,7 @@ public class DataBaseHelper {
     }
 
     //dist in distantion precision is km
-    public List<Department> geoDepartmentDist(Optional<LatLng> location, double distantion) {
+    public List<Department> geoDepartmentDist(LatLng location, double distantion) {
 
         LocalDateTime localDateTime = LocalDateTime.now();
         DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
@@ -438,8 +438,8 @@ public class DataBaseHelper {
 
         try (Connection conn = this.pds.getConnection(); CallableStatement callableStatement = conn.prepareCall("{call geoDepartmentDist(?,?,?)}")) {
 
-            callableStatement.setDouble(1, location.get().lat);
-            callableStatement.setDouble(2, location.get().lng);
+            callableStatement.setDouble(1, location.lat);
+            callableStatement.setDouble(2, location.lng);
             callableStatement.setDouble(3, distantion);
 
             ResultSet resultSet = callableStatement.executeQuery();

@@ -3,7 +3,6 @@ package by.potato.helper;
 import by.potato.Enum.Info;
 import by.potato.Enum.Items;
 import by.potato.db.DataBaseHelper;
-import by.potato.holder.Department;
 import by.potato.holder.KeyboardMarkUp;
 import by.potato.holder.StatusUser;
 import com.google.maps.model.LatLng;
@@ -14,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Location;
 import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboard;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -39,7 +39,6 @@ public class BotHelper implements Runnable {
     private Long chatId;
     private String messageInp;
     private Items action;
-    private Optional<LatLng> location;
 
     public BotHelper() {
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
@@ -63,7 +62,6 @@ public class BotHelper implements Runnable {
 
     @Override
     public void run() {
-
         while (true) {
 
             Update update = updateMessages.poll();
@@ -71,7 +69,7 @@ public class BotHelper implements Runnable {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.error("Sleep was interrupt");
                 }
                 continue;
             }
@@ -88,25 +86,12 @@ public class BotHelper implements Runnable {
                 continue;
             }
 
-
-            if (update.getMessage().hasText()) {
-                this.messageInp = update.getMessage().getText();
-                this.messageInp = EmojiParser.removeAllEmojis(this.messageInp).trim();
-            } else {
-                this.messageInp = "";
-            }
-
-            this.action = Items.parse(this.messageInp);
-
-            saveStatistic(update);
-
             Optional<Location> locationTemp = Optional.ofNullable(update.getMessage().getLocation());
             if (locationTemp.isPresent()) {
                 LatLng latLng = new LatLng();
                 latLng.lng = locationTemp.get().getLongitude();
                 latLng.lat = locationTemp.get().getLatitude();
-
-                this.location = Optional.of(latLng);
+                history.get(this.chatId).location = latLng;
 
                 switch (history.get(this.chatId).actions.getLast()) {
                     case NEAR:
@@ -116,32 +101,30 @@ public class BotHelper implements Runnable {
                         this.action = LOCATION_DIST_STEP_ONE;
                         break;
                 }
-
-            } else {
-                this.location = Optional.empty();
             }
 
+            if (update.getMessage().hasText()) {
+                this.messageInp = update.getMessage().getText();
+                this.messageInp = EmojiParser.removeAllEmojis(this.messageInp).trim();
+            } else {
+                sendMessage("Я умею работать только с текстом :confused:", null);
+                continue;
+            }
+
+            this.action = Items.parse(this.messageInp);
+
+            saveStatistic(update);
 
             System.out.println(messageInp);
 
-
-            SendMessage message = new SendMessage();
-            message.setChatId(this.chatId);
-            String messageOut;
-
-
             while (true) {//for action BACK
-
                 switch (this.action) {
                     case START:
                     case START_BOT:
-                        messageOut = "<i>Привет!\n</i>Я помогу тебе поменять деньги по выгодному курсу!";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getStartMenu());
+                        sendMessage("<i>Привет!\n</i>Я помогу тебе поменять деньги по выгодному курсу!",
+                                KeyboardMarkUp.getStartMenu());
                         initPosition();
-                        sendMessage(message);
                         break;
-
 
                     case RUB_SELL:
                         history.get(this.chatId).userSettings.setRubSell(!(history.get(this.chatId).userSettings.getRubSell()));
@@ -185,34 +168,24 @@ public class BotHelper implements Runnable {
 
                     case SAVE:
                         DataBaseHelper.getInstance().updateUserSettings(history.get(this.chatId).userSettings, this.chatId);
-                        messageOut = "Настроки сохранены";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getSettings(history.get(this.chatId).userSettings));
-                        sendMessage(message);
+                        sendMessage("Настроки сохранены", KeyboardMarkUp.getSettings(history.get(this.chatId).userSettings));
                         break;
 
                     case SETTINGS:
-                        messageOut = "Выберите информацию которую необходимо показывать.\nНажатие на кнопку вкл/выкл настройку";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getSettings(history.get(this.chatId).userSettings));
+                        sendMessage("Выберите информацию которую необходимо показывать.\nНажатие на кнопку вкл/выкл настройку",
+                                KeyboardMarkUp.getSettings(history.get(this.chatId).userSettings));
                         forwardPosition();
-                        sendMessage(message);
                         break;
 
                     case COURSES_CITY:
-                        messageOut = "Введите название города (Пинск, Речица и т.д.)";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getSearchCities());
+                        sendMessage("Введите название города (Пинск, Речица и т.д.)", KeyboardMarkUp.getSearchCities());
                         forwardPosition();
-                        sendMessage(message);
                         break;
 
                     case TYPE_OF_INFO:
-                        messageOut = "Лучшие курсы в городе за текущий день:thumbsup:\nСписок банков представленных в городе";
-                        message.setText(EmojiParser.parseToUnicode(messageOut));
-                        message.setReplyMarkup(KeyboardMarkUp.getTypeOfInfo());
+                        sendMessage("Лучшие курсы в городе за текущий день:thumbsup:\nСписок банков представленных в городе",
+                                KeyboardMarkUp.getTypeOfInfo());
                         forwardPosition();
-                        sendMessage(message);
                         break;
 
                     case BEST_COURSES:
@@ -220,104 +193,67 @@ public class BotHelper implements Runnable {
                         history.get(this.chatId).messagesAndLocation = StringHelper.getBestCoursesByCity(DataBaseHelper.getInstance().getCoursesByCity(history.get(this.chatId).city), null, history.get(this.chatId).userSettings);
                     case NEXT_DEP:
                         printMessages(StringHelper.getBestCoursesByCityNext(history.get(this.chatId).messagesAndLocation));
-                        messageOut = "Список лучший курсов";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getDepNext());
-                        sendMessage(message);
+                        sendMessage("Список лучший курсов", KeyboardMarkUp.getDepNext());
                         break;
 
                     case BANKS:
                         List<String> banks = DataBaseHelper.getInstance().getBanksByCity(history.get(this.chatId).city);
-
-                        SendMessage mes = new SendMessage();
-                        messageOut = "Список Банков";
-                        mes.setChatId(this.chatId);
-                        mes.setText(messageOut);
-                        mes.setReplyMarkup(KeyboardMarkUp.getBanks(banks));
+                        sendMessage("Список Банков", KeyboardMarkUp.getBanks(banks));
+                        sendMessage("Выберите из списка интересующий Вас банк", KeyboardMarkUp.getBackKeyboard());
                         forwardPosition();
-                        sendMessage(mes);
-
-                        messageOut = "Выберите из списка интересующий Вас банк";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getBackKeyboard());
-                        forwardPosition();
-                        sendMessage(message);
-
                         break;
 
                     case NEAR_EXCHANGE:
-                        messageOut = "Ближайшие - список ближайших работающих обменных пунктов\nПо заданному расстоянию - список работающих обменных пунктов в указанном радиусе";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getNearKeyboard());
+                        sendMessage("Ближайшие - список ближайших работающих обменных пунктов\nПо заданному расстоянию - список работающих обменных пунктов в указанном радиусе",
+                                KeyboardMarkUp.getNearKeyboard());
                         forwardPosition();
-                        sendMessage(message);
                         break;
 
                     case DISTANCE:
                     case NEAR:
-                        messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getDistNearKeyboard());
+                        sendMessage("Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами",
+                                KeyboardMarkUp.getDistNearKeyboard());
                         forwardPosition();
-                        sendMessage(message);
                         break;
-
 
                     case LOCATION_NEAR:
                         history.get(this.chatId).info = Info.NEAR;
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
-                        history.get(this.chatId).departments = DataBaseHelper.getInstance().geoDepartment(this.location, history.get(this.chatId).localDateTime);
+                        history.get(this.chatId).departments = DataBaseHelper.getInstance().geoDepartment(history.get(this.chatId).location, history.get(this.chatId).localDateTime);
 
                     case NEXT:
                         printMessages(StringHelper.getPrintDepartment(history.get(this.chatId)));
-
-                        messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getDistNearNextKeyboard());
-                        sendMessage(message);
+                        sendMessage("Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами",
+                                KeyboardMarkUp.getDistNearNextKeyboard());
                         break;
 
-
                     case LOCATION_DIST_STEP_ONE:
-                        messageOut = "Введите радиус поиска в км";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getBackKeyboard());
-                        sendMessage(message);
+                        sendMessage("Введите радиус поиска в км", KeyboardMarkUp.getBackKeyboard());
                         forwardPosition();
-                        if (this.location.isPresent()) {
-                            history.get(this.chatId).location = this.location;
-                        }
-
                         break;
 
                     case LOCATION_DIST_STEP_TWO:
                         history.get(this.chatId).info = Info.NEAR;
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
+                        //TODO check up this action
+                        history.get(this.chatId).departments = DataBaseHelper.getInstance().geoDepartmentDist(history.get(this.chatId).location, history.get(this.chatId).distance);
 
-                        List<Department> departmentsDist = DataBaseHelper.getInstance().geoDepartmentDist(history.get(this.chatId).location, history.get(this.chatId).distance);
                         printMessages(StringHelper.getPrintDepartment(history.get(this.chatId)));
+                        sendMessage("Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами",
+                                KeyboardMarkUp.getDistNearKeyboard());
 
-                        messageOut = "Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getDistNearKeyboard());
                         forwardPosition();
-                        sendMessage(message);
                         break;
 
                     case INFO:
-                        messageOut = "Данные предоставлены сайтом <a href=\"http://www.myfin.by/\">www.MyFin.by</a>. Актуальная информация о банках, вкладах, курсах и кредитах в РБ.";
-                        message.setText(EmojiParser.parseToUnicode(messageOut));
-                        message.setReplyMarkup(KeyboardMarkUp.getBackKeyboard());
+                        sendMessage("Данные предоставлены сайтом <a href=\"http://www.myfin.by/\">www.MyFin.by</a>. Актуальная информация о банках, вкладах, курсах и кредитах в РБ.",
+                                KeyboardMarkUp.getBackKeyboard());
                         forwardPosition();
-                        sendMessage(message);
                         break;
 
                     case QUESTION:
-                        messageOut = "Напишите Ваш вопрос или предложение";
-                        message.setText(messageOut);
-                        message.setReplyMarkup(KeyboardMarkUp.getQuestion());
+                        sendMessage("Напишите Ваш вопрос или предложение", KeyboardMarkUp.getQuestion());
                         forwardPosition();
-                        sendMessage(message);
                         break;
 
                     case BACK:
@@ -328,10 +264,10 @@ public class BotHelper implements Runnable {
                         switch (history.get(chatId).actions.getLast()) { //последнее действие пользователя
                             case NEAR: //пользователь ввёл свои координаты через стороку
                                 this.action = LOCATION_NEAR;
-                                this.location = Geocoding.getCoordFromAddressCommon(messageInp);
+                                history.get(this.chatId).location = Geocoding.getCoordFromAddressCommon(messageInp);
 
-                                if (!this.location.isPresent()) {
-                                    errorEnterPrint("К сожалению введённый адрес не корректен :confused:\nПовторите ввод");
+                                if (history.get(this.chatId).location == null) {
+                                    sendMessage("К сожалению введённый адрес не корректен :confused:\nПовторите ввод", null);
                                     this.action = NEAR;
                                 }
                                 continue;
@@ -339,10 +275,10 @@ public class BotHelper implements Runnable {
                             case LOCATION_DIST_STEP_TWO:
                             case DISTANCE: //пользователь ввёл свои координаты через стороку
                                 this.action = LOCATION_DIST_STEP_ONE;
-                                this.location = Geocoding.getCoordFromAddressCommon(messageInp);
+                                history.get(this.chatId).location = Geocoding.getCoordFromAddressCommon(messageInp);
 
-                                if (!this.location.isPresent()) {
-                                    errorEnterPrint("К сожалению введённый адрес не корректен :confused:\nПовторите ввод");
+                                if (history.get(this.chatId).location == null) {
+                                    sendMessage("К сожалению введённый адрес не корректен :confused:\nПовторите ввод", null);
                                     this.action = DISTANCE;
                                 }
                                 continue;
@@ -353,10 +289,9 @@ public class BotHelper implements Runnable {
                                     history.get(this.chatId).distance = new Double(messageInp);
                                     this.action = Items.LOCATION_DIST_STEP_TWO;
                                 } catch (NumberFormatException e) {
-                                    errorEnterPrint("К сожалению вы ввели не число :confused:\nПовторите ввод");
+                                    sendMessage("К сожалению вы ввели не число :confused:\nПовторите ввод", null);
                                     this.action = LOCATION_DIST_STEP_ONE;
                                 }
-
                                 continue;
 
                             case COURSES_CITY:
@@ -367,30 +302,20 @@ public class BotHelper implements Runnable {
                                     history.get(this.chatId).city = cityName;
                                     this.action = TYPE_OF_INFO;
                                 } else {
-                                    errorEnterPrint("К сожалению Ваш город не найдет :confused:\nПовторите ввод");
+                                    sendMessage("К сожалению Ваш город не найдет :confused:\nПовторите ввод", null);
                                     this.action = COURSES_CITY;
                                 }
-
                                 continue;
 
                             case QUESTION:
                                 DataBaseHelper.getInstance().insertQuestion(this.chatId, messageInp);
-
-                                SendMessage messOut = new SendMessage();
-                                String text = "Отправлено :outbox_tray:";
-                                messOut.setText(EmojiParser.parseToUnicode(text));
-                                messOut.setChatId(this.chatId);
-                                sendMessage(messOut);
+                                sendMessage("Отправлено :outbox_tray:", null);
                                 initPosition();
                                 this.action = START;
                                 continue;
 
                             default:
-                                SendMessage mess = new SendMessage();
-                                String str = "Команда не распознана";
-                                mess.setText(str);
-                                mess.setChatId(this.chatId);
-                                sendMessage(mess);
+                                sendMessage("Команда не распознана", null);
                                 initPosition();
                                 this.action = START;
                                 continue;
@@ -423,14 +348,7 @@ public class BotHelper implements Runnable {
 
             case NEXT_DEP_INLINE:
                 printMessages(StringHelper.getPrintDepartment(history.get(this.chatId)));
-
-                SendMessage messNext = new SendMessage();
-                String strNext = "Cписок отделений :arrow_up_small:";
-                messNext.setText(EmojiParser.parseToUnicode(strNext));
-                messNext.setChatId(this.chatId);
-                messNext.setReplyMarkup(KeyboardMarkUp.getDepNextInline());
-                sendMessage(messNext);
-
+                sendMessage("Cписок отделений :arrow_up_small:", KeyboardMarkUp.getDepNextInline());
                 break;
         }
     }
@@ -444,7 +362,6 @@ public class BotHelper implements Runnable {
 
     private void forwardPosition() {
         history.get(this.chatId).actions.add(this.action);
-
     }
 
     private Items backPosition() {
@@ -462,14 +379,17 @@ public class BotHelper implements Runnable {
         return history.get(this.chatId).actions.getLast();
     }
 
-    private void sendMessage(SendMessage message) {
+    private void sendMessage(String mess, ReplyKeyboard keyboardMarkup) {
+        SendMessage message = new SendMessage();
+        message.setChatId(this.chatId);
+        message.setText(EmojiParser.parseToUnicode(mess));
+        message.setReplyMarkup(keyboardMarkup);
         message.setParseMode("HTML");
         outStringMessage.add(message);
     }
 
     //statistics about user
     private void saveStatistic(Update update) {
-
         Long chatId = update.getMessage().getChatId();
         Items action = Items.parse(this.messageInp);
         String firstName = update.getMessage().getChat().getFirstName();
@@ -488,27 +408,16 @@ public class BotHelper implements Runnable {
         }
     }
 
-    private void errorEnterPrint(String str) {
-        SendMessage mess = new SendMessage();
-        mess.setText(EmojiParser.parseToUnicode(str));
-        mess.setChatId(this.chatId);
-        sendMessage(mess);
-    }
-
     private void printMessages(Pair<List<String>, List<LatLng>> messagesAndLocation) {
         List<String> messages = messagesAndLocation.getLeft();
         List<LatLng> location = messagesAndLocation.getRight();
 
-        for (int i = 0; i < messages.size(); i++) {
-            SendMessage mess = new SendMessage();
-            mess.setText(messages.get(i));
-            mess.setChatId(this.chatId);
-            try {
-                mess.setReplyMarkup(KeyboardMarkUp.getLocationButton(location.get(i)));
-            } catch (IndexOutOfBoundsException e) {
-                logger.error(e.getMessage());
+        if (messages.size() == 0) { //нет результатов удовлетворяющих условия
+            sendMessage("По вашему запросу ничего не найдено :confused:", null);
+        } else {
+            for (int i = 0; i < messages.size(); i++) {
+                sendMessage(messages.get(i), KeyboardMarkUp.getLocationButton(location.get(i)));
             }
-            sendMessage(mess);
         }
     }
 

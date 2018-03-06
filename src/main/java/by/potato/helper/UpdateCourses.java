@@ -210,7 +210,7 @@ public class UpdateCourses implements Job {
         dep.setLinkToTimes(linkForMoreInformation);
 
         if (!currentAddress.contains(dep.getAddress())) {
-            LatLng location = Geocoding.getCoordFromAddressCommon(dep.getAddress()).get();
+            LatLng location = Geocoding.getCoordFromAddressCommon(dep.getAddress());
             dep.setLocation(location);
         } else {
             dep.setLocation(new LatLng());

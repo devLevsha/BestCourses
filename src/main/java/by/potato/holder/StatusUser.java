@@ -9,12 +9,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
 
 public class StatusUser {
 
     public Deque<Items> actions;
-    public Optional<LatLng> location;
+    public LatLng location;
     public Double distance;
     public String city;
     public List<Department> departments;

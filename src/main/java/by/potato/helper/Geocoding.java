@@ -20,7 +20,7 @@ public class Geocoding {
     private static final GeoApiContext contextGoogle = new GeoApiContext.Builder().apiKey("AIzaSyAnSe8k3kMruEIhx8qDO40O2aXLloHwq9s").build();
     private static final Logger logger = LogManager.getLogger(Geocoding.class.getSimpleName());
 
-    public static Optional<LatLng> getCoordFromAddressCommon(String address) {
+    public static LatLng getCoordFromAddressCommon(String address) {
         logger.info("Geocoding address : " + address);
 
         Optional<LatLng> location = getCoordFromAddressGoogle(address);
@@ -29,7 +29,11 @@ public class Geocoding {
             location = getCoordFromAddressYandex(address);
         }
 
-        return location;
+        if (!location.isPresent()) {
+            return null;
+        }
+
+        return location.get();
     }
 
     private static Optional<LatLng> getCoordFromAddressGoogle(String address) {

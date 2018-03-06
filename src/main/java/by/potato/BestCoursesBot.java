@@ -23,7 +23,7 @@ import static org.quartz.JobBuilder.newJob;
 public class BestCoursesBot extends TelegramLongPollingBot {
 
     private static final Logger logger = LogManager.getLogger(BestCoursesBot.class.getSimpleName());
-    private static final int COUNT_BOT_HELPERS = 5;
+    private static final int COUNT_BOT_HELPERS = 1;
     public static Queue<Update> updateMessages = new ConcurrentLinkedQueue<>();
     public static Queue<SendMessage> outStringMessage = new ConcurrentLinkedQueue<>();
 
