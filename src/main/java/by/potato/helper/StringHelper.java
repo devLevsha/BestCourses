@@ -128,11 +128,6 @@ public class StringHelper {
         //see method List.subList();
         list.clear();
 
-        if (strings.size() == 0) { //нет результатов удовлетворяющих условия
-            String str = "По вашему запросу ничего не найдено :confused:";
-            strings.add(EmojiParser.parseToUnicode(str));
-        }
-
         return Pair.of(strings, locations);
     }
 

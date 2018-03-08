@@ -338,7 +338,7 @@ public class BotHelper implements Runnable {
             this.messageInp = outputStr[1];
         }
 
-        this.chatId = update.getCallbackQuery().getMessage().getChatId();
+        //       this.chatId = update.getCallbackQuery().getMessage().getChatId();
 
         switch (this.action) {
             case BANK:
@@ -412,12 +412,25 @@ public class BotHelper implements Runnable {
         List<String> messages = messagesAndLocation.getLeft();
         List<LatLng> location = messagesAndLocation.getRight();
 
+        if (messages == null) {
+            sendMessage("По вашему запросу ничего не найдено :confused:", null);
+            return;
+        }
+
         if (messages.size() == 0) { //нет результатов удовлетворяющих условия
             sendMessage("По вашему запросу ничего не найдено :confused:", null);
-        } else {
-            for (int i = 0; i < messages.size(); i++) {
-                sendMessage(messages.get(i), KeyboardMarkUp.getLocationButton(location.get(i)));
+            return;
+        }
+
+        for (int i = 0; i < messages.size(); i++) {
+
+            ReplyKeyboard keyboard = null;
+            try {
+                keyboard = KeyboardMarkUp.getLocationButton(location.get(i));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            sendMessage(messages.get(i), keyboard);
         }
     }
 
