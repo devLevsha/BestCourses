@@ -31,7 +31,7 @@ import static by.potato.Enum.Items.*;
 public class BotHelper implements Runnable {
 
     private static final Logger logger = LogManager.getLogger(BotHelper.class.getSimpleName());
-    private static final Logger History = LogManager.getLogger("History");
+    private static final Logger historyLogger = LogManager.getLogger("historyLogger");
     private static final int LIFETIME_HISTORY = 10;
 
     private static Map<Long, StatusUser> history = new ConcurrentHashMap<>();
@@ -62,6 +62,14 @@ public class BotHelper implements Runnable {
 
     @Override
     public void run() {
+        try {
+            processing();
+        } catch (Exception e) {
+            logger.error(String.format("Error processing, message %s, cause %s", e.getMessage(), e.getCause().toString()));
+        }
+    }
+
+    private void processing() {
         while (true) {
 
             Update update = updateMessages.poll();
@@ -396,7 +404,7 @@ public class BotHelper implements Runnable {
         String lastName = Optional.ofNullable(update.getMessage().getChat().getLastName()).orElse("not LastName");
         String userName = Optional.ofNullable(update.getMessage().getChat().getUserName()).orElse("not UserName");
 
-        History.info(String.format("CharID %d, Action %s, FirstName %s, LastName %s, UserName %s", chatId, action.toString(), firstName, lastName, userName));
+        historyLogger.info(String.format("CharID %d, Action %s, FirstName %s, LastName %s, UserName %s", chatId, action.toString(), firstName, lastName, userName));
     }
 
     private void getChatID(Update update) {
