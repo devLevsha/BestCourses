@@ -5,6 +5,7 @@ import by.potato.Enum.Items;
 import by.potato.db.DataBaseHelper;
 import by.potato.holder.KeyboardMarkUp;
 import by.potato.holder.StatusUser;
+import by.potato.holder.UserSettings;
 import com.google.maps.model.LatLng;
 import com.vdurmont.emoji.EmojiParser;
 import org.apache.commons.lang3.tuple.Pair;
@@ -135,33 +136,12 @@ public class BotHelper implements Runnable {
                         break;
 
                     case RUB_SELL:
-                        history.get(this.chatId).userSettings.setRubSell(!(history.get(this.chatId).userSettings.getRubSell()));
-                        this.action = SETTINGS;
-                        continue;
-
                     case RUB_BUY:
-                        history.get(this.chatId).userSettings.setRubBuy(!(history.get(this.chatId).userSettings.getRubBuy()));
-                        this.action = SETTINGS;
-                        continue;
-
                     case USD_SELL:
-                        history.get(this.chatId).userSettings.setUsdSell(!(history.get(this.chatId).userSettings.getUsdSell()));
-                        this.action = SETTINGS;
-                        continue;
-
                     case USD_BUY:
-                        history.get(this.chatId).userSettings.setUsdBuy(!(history.get(this.chatId).userSettings.getUsdBuy()));
-                        this.action = SETTINGS;
-                        continue;
-
                     case EUR_SELL:
-                        history.get(this.chatId).userSettings.setEurSell(!(history.get(this.chatId).userSettings.getEurSell()));
-                        this.action = SETTINGS;
-                        continue;
-
                     case EUR_BUY:
-                        history.get(this.chatId).userSettings.setEurBuy(!(history.get(this.chatId).userSettings.getEurBuy()));
-                        this.action = SETTINGS;
+                        minAmountOfCurrency(this.action);
                         continue;
 
                     case PHONE:
@@ -228,7 +208,6 @@ public class BotHelper implements Runnable {
                         history.get(this.chatId).info = Info.NEAR;
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
                         history.get(this.chatId).departments = DataBaseHelper.getInstance().geoDepartment(history.get(this.chatId).location, history.get(this.chatId).localDateTime);
-
                     case NEXT:
                         printMessages(StringHelper.getPrintDepartment(history.get(this.chatId)));
                         sendMessage("Введите свой адрес (в последовательности: город -> улица -> дом) или поделитесь координатами",
@@ -243,7 +222,6 @@ public class BotHelper implements Runnable {
                     case LOCATION_DIST_STEP_TWO:
                         history.get(this.chatId).info = Info.NEAR;
                         history.get(this.chatId).localDateTime = LocalDateTime.now();
-                        //TODO check up this action
                         history.get(this.chatId).departments = DataBaseHelper.getInstance().geoDepartmentDist(history.get(this.chatId).location, history.get(this.chatId).distance);
 
                         printMessages(StringHelper.getPrintDepartment(history.get(this.chatId)));
@@ -335,6 +313,64 @@ public class BotHelper implements Runnable {
         }
     }
 
+    private void minAmountOfCurrency(Items action) {
+        UserSettings userSettings = history.get(this.chatId).userSettings;
+
+        int count = 0;
+        count += (userSettings.getEurBuy() ? 1 : 0);
+        count += (userSettings.getEurSell() ? 1 : 0);
+        count += (userSettings.getUsdBuy() ? 1 : 0);
+        count += (userSettings.getUsdSell() ? 1 : 0);
+        count += (userSettings.getRubBuy() ? 1 : 0);
+        count += (userSettings.getRubSell() ? 1 : 0);
+
+        boolean needMoreThanZero = false;
+
+        switch (action) {
+            case RUB_BUY:
+                if (count + (!userSettings.getRubBuy() ? 1 : -1) > 0) {
+                    history.get(this.chatId).userSettings.setRubBuy(!(history.get(this.chatId).userSettings.getRubBuy()));
+                    needMoreThanZero = true;
+                }
+                break;
+            case RUB_SELL:
+                if (count + (!userSettings.getRubSell() ? 1 : -1) > 0) {
+                    history.get(this.chatId).userSettings.setRubSell(!(history.get(this.chatId).userSettings.getRubSell()));
+                    needMoreThanZero = true;
+                }
+                break;
+            case EUR_BUY:
+                if (count + (!userSettings.getEurBuy() ? 1 : -1) > 0) {
+                    history.get(this.chatId).userSettings.setEurBuy(!(history.get(this.chatId).userSettings.getEurBuy()));
+                    needMoreThanZero = true;
+                }
+                break;
+            case EUR_SELL:
+                if (count + (!userSettings.getEurSell() ? 1 : -1) > 0) {
+                    history.get(this.chatId).userSettings.setEurSell(!(history.get(this.chatId).userSettings.getEurSell()));
+                    needMoreThanZero = true;
+                }
+                break;
+            case USD_BUY:
+                if (count + (!userSettings.getUsdBuy() ? 1 : -1) > 0) {
+                    history.get(this.chatId).userSettings.setUsdBuy(!(history.get(this.chatId).userSettings.getUsdBuy()));
+                    needMoreThanZero = true;
+                }
+                break;
+            case USD_SELL:
+                if (count + (!userSettings.getUsdSell() ? 1 : -1) > 0) {
+                    history.get(this.chatId).userSettings.setUsdSell(!(history.get(this.chatId).userSettings.getUsdSell()));
+                    needMoreThanZero = true;
+                }
+                break;
+        }
+
+        if (!needMoreThanZero) {
+            sendMessage("Необходимо минимум одна операция с валютой", null);
+        }
+
+        this.action = SETTINGS;
+    }
     private void workWithCallBack(Update update) {
 
         String[] outputStr = update.getCallbackQuery().getData().split("_");
