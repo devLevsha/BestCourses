@@ -366,7 +366,7 @@ public class BotHelper implements Runnable {
         }
 
         if (!needMoreThanZero) {
-            sendMessage("Необходимо минимум одна операция с валютой", null);
+            sendMessage("Необходима минимум одна операция с обменом валют", null);
         }
 
         this.action = SETTINGS;
