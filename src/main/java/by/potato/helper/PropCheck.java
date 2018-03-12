@@ -20,6 +20,7 @@ public class PropCheck {
     public static String UPDATE_COURSES_SCHEDULE;
     public static String UPDATE_UNUSED_DEPARTMENT;
     public static String UPDATE_WORK_TIME;
+    public static Integer COUNT_BOT_HELPER;
 
     private String propertiesFname;
     private File configFile;
@@ -41,6 +42,7 @@ public class PropCheck {
         UPDATE_COURSES_SCHEDULE = this.properties.getProperty("update_courses");
         UPDATE_UNUSED_DEPARTMENT = this.properties.getProperty("update_unused_department");
         UPDATE_WORK_TIME = this.properties.getProperty("update_work_time");
+        COUNT_BOT_HELPER = Integer.parseInt(this.properties.getProperty("count_bot_helper"));
     }
 
     private void readProps() {

@@ -96,14 +96,16 @@ public class StringHelper {
 
                 switch (info) {
                     case NEAR:
-                        str = dep.getAddress()
+                        str = dep.getBankName() + "\n"
+                                + dep.getAddress()
                                 + String.format("\nРасстояние %.3f км", dep.getDist())
                                 + "\nВремя " + dep.getWorTime(localDateTime)
                                 + currencies;
                         break;
                     case INFO:
 
-                        str = "Адрес " + dep.getAddress()
+                        str = dep.getBankName() + "\n"
+                                + "Адрес " + dep.getAddress()
                                 + (userSettings.getPhone() ? "\nТелефон " + dep.getTel() : "")
                                 + (userSettings.getWorkTime() ? "\nГрафик работы " + dep.getWorkTimeOriginal() : "")
                                 + currencies;
